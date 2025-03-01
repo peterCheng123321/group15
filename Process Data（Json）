@@ -1,0 +1,125 @@
+ {
+  "university": "Syracuse University",
+  "semester": "Fall 2025",
+  "departments": [
+    {
+      "department_id": "CIS",
+      "department_name": "Computer and Information Science",
+      "courses": [
+        {
+          "course_id": "CIS101",
+          "title": "Introduction to Computer Science",
+          "credits": 3,
+          "instructor_id": "T001",
+          "schedule": {
+            "days": ["Monday", "Wednesday"],
+            "time": "10:00 AM - 11:30 AM",
+            "location": "Hall A, Room 101"
+          },
+          "capacity": 50,
+          "enrolled_students": 45,
+          "prerequisites": [],
+          "description": "An introductory course covering fundamental concepts in programming, algorithms, and data structures."
+        },
+        {
+          "course_id": "CIS202",
+          "title": "Data Structures and Algorithms",
+          "credits": 4,
+          "instructor_id": "T002",
+          "schedule": {
+            "days": ["Tuesday", "Thursday"],
+            "time": "2:00 PM - 3:30 PM",
+            "location": "Hall B, Room 204"
+          },
+          "capacity": 40,
+          "enrolled_students": 30,
+          "prerequisites": ["CIS101"],
+          "description": "A course covering data structures such as arrays, linked lists, trees, graphs, and algorithm efficiency."
+        }
+      ]
+    },
+    {
+      "department_id": "MATH",
+      "department_name": "Mathematics",
+      "courses": [
+        {
+          "course_id": "MATH101",
+          "title": "Calculus I",
+          "credits": 4,
+          "instructor_id": "T003",
+          "schedule": {
+            "days": ["Monday", "Wednesday", "Friday"],
+            "time": "1:00 PM - 2:30 PM",
+            "location": "Math Building, Room 105"
+          },
+          "capacity": 60,
+          "enrolled_students": 55,
+          "prerequisites": [],
+          "description": "An introductory course covering limits, derivatives, and integrals."
+        }
+      ]
+    }
+  ],
+  "instructors": [
+    {
+      "instructor_id": "T001",
+      "name": "Dr. John Smith",
+      "department": "Computer and Information Science",
+      "email": "jsmith@syr.edu",
+      "office": "Room 302, Science Building"
+    },
+    {
+      "instructor_id": "T002",
+      "name": "Prof. Emily Johnson",
+      "department": "Computer and Information Science",
+      "email": "ejohnson@syr.edu",
+      "office": "Room 204, Engineering Building"
+    },
+    {
+      "instructor_id": "T003",
+      "name": "Dr. Robert Adams",
+      "department": "Mathematics",
+      "email": "radams@syr.edu",
+      "office": "Room 101, Math Building"
+    }
+  ],
+  "students": [
+    {
+      "student_id": "S12345",
+      "name": "Zhengxu An",
+      "email": "zan@syr.edu",
+      "major": "Computer Science",
+      "current_courses": ["CIS101", "MATH101"]
+    },
+    {
+      "student_id": "S67890",
+      "name": "Alice Brown",
+      "email": "alicebrown@syr.edu",
+      "major": "Information Systems",
+      "current_courses": ["CIS202"]
+    }
+  ],
+  "registrations": [
+    {
+      "registration_id": "R001",
+      "student_id": "S12345",
+      "course_id": "CIS101",
+      "status": "Enrolled",
+      "grade": null
+    },
+    {
+      "registration_id": "R002",
+      "student_id": "S12345",
+      "course_id": "MATH101",
+      "status": "Enrolled",
+      "grade": null
+    },
+    {
+      "registration_id": "R003",
+      "student_id": "S67890",
+      "course_id": "CIS202",
+      "status": "Enrolled",
+      "grade": null
+    }
+  ]
+}
