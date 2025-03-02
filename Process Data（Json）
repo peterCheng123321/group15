@@ -1,18 +1,18 @@
 [
     {
-        "Course Title": "CIS 101 - Introduction to Computer Science",
-        "Description": "An introductory course covering fundamental concepts in programming, algorithms, and data structures."
+        "Course Title": "CIS 151 - Fundamentals of Computing and Programming",
+        "Description": "Principles and practice of programming. Computing fundamentals: variables, types, scope, objects, classes, functions, parameter passing, input/output, conditionals, and iteration. Defensive programming techniques, including exceptions. Program testing and debugging. Includes programming laboratory.."
     },
     {
-        "Course Title": "CIS 202 - Data Structures and Algorithms",
-        "Description": "Covers arrays, linked lists, trees, graphs, and algorithm efficiency."
+        "Course Title": "CIS 252 - Elements of Computer Science",
+        "Description": "Introduction to key computer-science concepts through functional programming. Recursion, data representation, data abstraction, and computational patterns. Algebraic data types and higher-order functions. Models of computation. Three hours of lecture and one hour of computer laboratory.."
     },
     {
-        "Course Title": "MAT 101 - Calculus I",
-        "Description": "Basic calculus covering limits, derivatives, and integrals."
+        "Course Title": "MAT 295 - Calculus I",
+        "Description": "Analytic geometry, limits, derivatives, maxima-minima, related rates, graphs, differentials, exponential and logarithmic functions, mean-value theorem, L’Hospital’s rule, integration. For science majors."
     },
     {
-        "Course Title": "MAT 202 - Linear Algebra",
-        "Description": "Introduction to matrices, vectors, and linear transformations."
+        "Course Title": "MAT 331 - First Course in Linear Algebra",
+        "Description": "Linear equations, n-dimensional euclidean space, linear independence, bases, linear transformations, matrices and determinants, eigenvalues and eigenvectors. Geometric aspects. Credit will not be given for both MAT 331 and 485."
     }
 ]
