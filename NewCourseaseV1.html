@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coursease - Smart Course Scheduler</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --hover: #ecf0f1;
+            --conflict: #e74c3c;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f6fa;
+        }
+
+        .nav-bar {
+            background: var(--primary);
+            padding: 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav-button {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .nav-button:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .course-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .day-column {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            min-height: 600px;
+            position: relative;
+        }
+
+        .course-block {
+            background: var(--secondary);
+            color: white;
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            border-radius: 6px;
+            position: absolute;
+            width: 95%;
+        }
+
+        .conflict {
+            background: var(--conflict) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav-bar">
+        <a href="#course-list" class="nav-button">All Courses</a>
+        <a href="#schedule" class="nav-button">My Schedule</a>
+    </div>
+
+    <!-- Course List -->
+    <div id="course-list">
+        <h1>Available Courses</h1>
+        <div id="courses-container"></div>
+    </div>
+
+    <!-- Schedule -->
+    <div id="schedule" style="display: none;">
+        <h1>My Weekly Schedule</h1>
+        <div class="schedule-grid">
+            <div class="day-column" data-day="Monday"><h3>Monday</h3></div>
+            <div class="day-column" data-day="Tuesday"><h3>Tuesday</h3></div>
+            <div class="day-column" data-day="Wednesday"><h3>Wednesday</h3></div>
+            <div class="day-column" data-day="Thursday"><h3>Thursday</h3></div>
+            <div class="day-column" data-day="Friday"><h3>Friday</h3></div>
+        </div>
+    </div>
+
+    <script>
+        // Embedded course data from CSV
+        const courses = [
+            {
+                "Class": "45909",
+                "Section": "M011-LAB\nRegular",
+                "Days & Times": "We 09:40 - 11:30",
+                "Room": "Link Hall 274",
+                "Instructor": "C. Smith",
+                "Meeting Dates": "2025/01/15 - 2025/04/23"
+            },
+            {
+                "Class": "52690",
+                "Section": "M016-SEC\nRegular",
+                "Days & Times": "MoWe 11:40 - 12:35",
+                "Room": "Carnegie 122",
+                "Instructor": "X. Liu",
+                "Meeting Dates": "2025/01/13 - 2025/04/28"
+            },
+            // Add all other courses following the same pattern
+            // ...
+        ];
+
+        let selectedCourses = [];
+
+        function renderCourses() {
+            const container = document.getElementById('courses-container');
+            container.innerHTML = courses.map(course => `
+                <div class="course-card" onclick="showCourseDetail('${course.Class}')">
+                    <h3>${course.Class} - ${course.Section.split('\n')[0]}</h3>
+                    <p>${course['Days & Times']}</p>
+                    <p>${course.Room} | ${course.Instructor}</p>
+                </div>
+            `).join('');
+        }
+
+        function showCourseDetail(classId) {
+            const course = courses.find(c => c.Class === classId);
+            document.getElementById('course-list').innerHTML = `
+                <div class="course-card">
+                    <h2>${course.Class}</h2>
+                    <p>Section: ${course.Section.replace('\n', ' - ')}</p>
+                    <p>Time: ${course['Days & Times']}</p>
+                    <p>Location: ${course.Room}</p>
+                    <p>Instructor: ${course.Instructor}</p>
+                    <p>Dates: ${course['Meeting Dates']}</p>
+                    <button onclick="addToSchedule('${course.Class}')">Add to Schedule</button>
+                    <button onclick="renderCourses()">Back to List</button>
+                </div>
+            `;
+        }
+
+        function addToSchedule(classId) {
+            const course = courses.find(c => c.Class === classId);
+            if (checkConflict(course)) {
+                alert('Schedule conflict detected!');
+                return;
+            }
+            selectedCourses.push(course);
+            updateScheduleDisplay();
+            document.getElementById('schedule').style.display = 'block';
+        }
+
+        function checkConflict(newCourse) {
+            const newTime = parseTime(newCourse['Days & Times']);
+            return selectedCourses.some(existing => {
+                const existingTime = parseTime(existing['Days & Times']);
+                return daysOverlap(newTime.days, existingTime.days) && 
+                    timeOverlap(newTime.start, newTime.end, existingTime.start, existingTime.end);
+            });
+        }
+
+        function parseTime(timeStr) {
+            const daysMap = { Mo: 'Monday', Tu: 'Tuesday', We: 'Wednesday', Th: 'Thursday', Fr: 'Friday' };
+            const [daysPart, timePart] = timeStr.split(' ');
+            const days = daysPart.match(/[A-Z][a-z]+/g).map(d => daysMap[d]);
+            const [start, end] = timePart.split('-').map(t => {
+                const [hours, minutes] = t.split(':');
+                return parseInt(hours) * 60 + parseInt(minutes);
+            });
+            return { days, start, end };
+        }
+
+        function daysOverlap(days1, days2) {
+            return days1.some(day => days2.includes(day));
+        }
+
+        function timeOverlap(start1, end1, start2, end2) {
+            return (start1 < end2) && (end1 > start2);
+        }
+
+        function updateScheduleDisplay() {
+            document.querySelectorAll('.day-column').forEach(column => {
+                column.innerHTML = `<h3>${column.dataset.day}</h3>`;
+            });
+
+            selectedCourses.forEach(course => {
+                const time = parseTime(course['Days & Times']);
+                time.days.forEach(day => {
+                    const column = document.querySelector(`[data-day="${day}"]`);
+                    const top = (time.start - 480) * 0.8; // 8am = 480 minutes
+                    const height = (time.end - time.start) * 0.8;
+                    const courseBlock = document.createElement('div');
+                    courseBlock.className = `course-block ${checkConflict(course) ? 'conflict' : ''}`;
+                    courseBlock.innerHTML = `
+                        <strong>${course.Class}</strong><br>
+                        ${course.Section.split('\n')[0]}<br>
+                        ${course.Instructor}
+                    `;
+                    courseBlock.style.top = `${top}px`;
+                    courseBlock.style.height = `${height}px`;
+                    column.appendChild(courseBlock);
+                });
+            });
+        }
+
+        // Initial render
+        renderCourses();
+    </script>
+</body>
+</html>
