@@ -1,0 +1,9 @@
+The UI Adjust
+
+Data needs to update
+
+Some buttons have some bugs and need to fix
+
+The course name in the course data need to adjust
+
+Some requirements are not done
