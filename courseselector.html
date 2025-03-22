@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Engineering Course Scheduler</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f0f4f8; }
+        select, button, input { padding: 8px; margin: 10px 0; }
+        .course-list, .schedule { margin-top: 20px; }
+        .course-item {
+            cursor: pointer;
+            margin: 5px 0;
+            padding: 10px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .course-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .day {
+            background: #fff;
+            padding: 15px;
+            min-height: 350px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .day strong { display: block; margin-bottom: 15px; font-size: 18px; }
+        .added-course { margin: 5px 0; padding: 6px; border-radius: 4px; cursor: pointer; }
+        .lecture { background: #d4edda; }
+        .lab { background: #d1ecf1; }
+        .discussion { background: #fff3cd; }
+        #search-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+            z-index: 1000;
+        }
+        #search-popup input { width: 100%; }
+        .close-btn { cursor: pointer; color: red; float: right; }
+    </style>
+</head>
+<body>
+
+<h2>Select Your Engineering Major & Year</h2>
+<select id="major-select"></select>
+<select id="year-select">
+    <option>Freshman</option>
+    <option>Sophomore</option>
+    <option>Junior</option>
+    <option>Senior</option>
+</select>
+<button onclick="loadSuggestedCourses()">Show Suggested Courses</button>
+<button onclick="resetSchedule()">Reset Schedule</button>
+
+<div class="course-list" id="course-list"></div>
+
+<h2>Your Schedule</h2>
+<div class="calendar" id="calendar">
+    <div class="day" id="Monday"><strong>Monday</strong></div>
+    <div class="day" id="Tuesday"><strong>Tuesday</strong></div>
+    <div class="day" id="Wednesday"><strong>Wednesday</strong></div>
+    <div class="day" id="Thursday"><strong>Thursday</strong></div>
+    <div class="day" id="Friday"><strong>Friday</strong></div>
+</div>
+
+<div id="search-popup">
+    <span class="close-btn" onclick="togglePopup()">&times;</span>
+    <input type="text" id="popup-search" placeholder="Search courses..." onkeyup="popupSearch(event)">
+    <div id="popup-results"></div>
+</div>
+
+<script>
+let courses = [];
+const requirements = {};
+
+fetch('engineering_majors_requirements.json').then(res => res.json()).then(data => {
+    Object.assign(requirements, data.Unknown);
+    const majorSelect = document.getElementById('major-select');
+    majorSelect.innerHTML = Object.keys(requirements).map(m => `<option>${m}</option>`).join('');
+});
+
+fetch('courses.csv').then(res => res.text()).then(data => {
+    const rows = data.split('\n').slice(1);
+    rows.forEach(row => {
+        const [Class, Section, DaysTimes, Room, Instructor, MeetingDates] = row.split(',');
+        if (Class) courses.push({Class, Section, DaysTimes, Room, Instructor, MeetingDates});
+    });
+});
+
+function loadSuggestedCourses() {
+    const major = document.getElementById('major-select').value;
+    const year = document.getElementById('year-select').value;
+    const suggestedCourses = requirements[major][year];
+
+    const courseList = document.getElementById('course-list');
+    courseList.innerHTML = suggestedCourses.map(c => 
+        `<div class="course-item" draggable="true" ondragstart="drag(event)" data-course="${c}">${c}</div>`
+    ).join('');
+}
+
+const selectedCourses = [];
+
+function resetSchedule() {
+    selectedCourses.length = 0;
+    renderSchedule();
+}
+
+function allowDrop(ev) {
+    ev.preventDefault();
+}
+
+function drag(ev) {
+    ev.dataTransfer.setData("text", ev.target.getAttribute('data-course'));
+}
+
+function drop(ev, dayId) {
+    ev.preventDefault();
+    const course = ev.dataTransfer.getData("text");
+    addCourse(course, dayId);
+}
+
+function addCourse(course, dayId) {
+    selectedCourses.push({course, dayId});
+    renderSchedule();
+}
+
+function renderSchedule() {
+    ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => {
+        const dayElement = document.getElementById(day);
+        dayElement.innerHTML = `<strong>${day}</strong>`;
+        dayElement.ondrop = (e) => drop(e, day);
+        dayElement.ondragover = allowDrop;
+    });
+
+    selectedCourses.forEach(({course, dayId}) => {
+        const dayElement = document.getElementById(dayId);
+        dayElement.innerHTML += `<div class="added-course lecture">${course}</div>`;
+    });
+}
+
+function togglePopup() {
+    const popup = document.getElementById('search-popup');
+    popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
+}
+
+function popupSearch(event) {
+    if (event.key === 'Enter') {
+        const query = event.target.value.trim().toLowerCase();
+        const matchedCourses = courses.filter(c => c.Class.toLowerCase().includes(query));
+        document.getElementById('popup-results').innerHTML = matchedCourses.map(c => `<div>${c.Class} ${c.Section}<button onclick="addCourse('${c.Class}', 'Monday');togglePopup();">Add</button></div>`).join('');
+    }
+}
+
+</script>
+
+</body>
+</html>
