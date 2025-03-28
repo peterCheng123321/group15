@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Engineering Course Scheduler</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+
+    <div id="header-controls">
+        <div id="selection-display-area">
+            <h2>Course Scheduler</h2> <p id="selection-display"><i>Initializing... Please make selection in popup.</i></p>
+        </div>
+
+        <div id="loading-indicator" style="display: none;">
+            <div class="spinner"></div>
+            <span>Loading Courses...</span>
+        </div>
+
+        <div id="main-action-buttons">
+             <button onclick="generateBestSchedule()">Add Suggested Courses</button>
+             <button onclick="togglePopup()">Search & Add Courses</button>
+             <button onclick="resetSchedule()">Reset Schedule</button>
+        </div>
+    </div><div class="calendar">
+        <div class="day" id="Monday"><strong>Monday</strong></div>
+        <div class="day" id="Tuesday"><strong>Tuesday</strong></div>
+        <div class="day" id="Wednesday"><strong>Wednesday</strong></div>
+        <div class="day" id="Thursday"><strong>Thursday</strong></div>
+        <div class="day" id="Friday"><strong>Friday</strong></div>
+    </div>
+
+    <div id="search-popup">
+        <span class="close-btn" onclick="togglePopup()">&times;</span>
+        <h3>Search Courses</h3>
+        <input type="text" id="popup-search" placeholder="Search by Course Code or Instructor Name and press Enter..." onkeyup="popupSearch(event)">
+        <div id="popup-results"></div>
+    </div>
+
+    <div id="notification-area"></div>
+
+    <div id="modal-overlay" class="modal-overlay">
+        <div id="initial-selection-modal" class="modal">
+            <h3>Select Your Major and Year</h3>
+            <p id="modal-status" class="modal-status-message">Loading majors...</p>
+             <select id="major-select" disabled>
+                <option>Loading...</option>
+            </select>
+            <select id="year-select"> <option>Freshman</option>
+                <option>Sophomore</option>
+                <option>Junior</option>
+                <option>Senior</option>
+            </select>
+            <button id="modal-confirm-button" disabled>Confirm Selection</button>
+        </div>
+    </div>
+    <script src="script.js" defer></script>
+
+</body>
+</html>

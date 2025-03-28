@@ -1,0 +1,183 @@
+/* style.css - Updated */
+
+/* == Base & Font == */
+body {
+    /* UPDATED FONT STACK */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    padding: 20px;
+    background: #f0f4f8;
+    color: #333; /* Default text color */
+    margin: 0; /* Remove default body margin */
+  }
+  
+  /* == General Controls == */
+  select, input { /* Style selects and inputs similarly */
+    padding: 10px;
+    margin: 0 5px 0 0; /* Adjusted margin for flex layout */
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 1em;
+    background-color: white;
+    height: 40px; /* Consistent height */
+    box-sizing: border-box;
+  }
+  
+  input[type="text"] {
+     /* Specific input styles if needed */
+  }
+  
+  /* == UPDATED Header Layout == */
+  #header-controls {
+      display: flex;
+      flex-wrap: wrap; /* Allow wrapping */
+      justify-content: space-between; /* Space out sections */
+      align-items: center; /* Vertically align */
+      margin-bottom: 25px; /* More space below header */
+      padding-bottom: 15px;
+      border-bottom: 1px solid #dee2e6;
+      gap: 15px 20px; /* Row gap, Column gap */
+  }
+  
+  /* Area displaying selected Major/Year */
+  #selection-display-area {
+      flex-grow: 1; /* Take available space */
+      flex-basis: 300px; /* Minimum width before wrapping */
+      padding: 0; /* Remove previous padding if any */
+      margin: 0; /* Remove previous margin */
+      background-color: transparent; /* Ensure no background */
+      text-align: left; /* Align text left */
+  }
+  
+  #selection-display-area h2 {
+      margin: 0 0 3px 0; /* Tighter spacing */
+      font-size: 1.5em; /* Slightly larger */
+      color: #343a40;
+      font-weight: 600; /* Semi-bold */
+  }
+  
+  #selection-display {
+      margin: 0;
+      font-size: 1.1em;
+      color: #495057;
+      font-weight: 500; /* Medium weight */
+      min-height: 1.3em; /* Prevent layout shift */
+  }
+  
+  #selection-display i {
+      color: #6c757d;
+      font-weight: 400; /* Normal weight */
+  }
+  
+  /* Loading Indicator Styles */
+  #loading-indicator {
+    display: flex; /* Hidden/shown via JS inline style */
+    align-items: center;
+    gap: 8px;
+    font-style: italic;
+    color: #72b3de; /* Match button blue */
+    font-size: 1em; /* Match other text better */
+    padding: 10px 0; /* Vertical padding */
+    /* Takes space in the flex layout */
+    flex-basis: content; /* Adjust as needed */
+  }
+  
+  .spinner {
+    border: 4px solid #e9ecef;
+    border-top: 4px solid #5dade2; /* Blue */
+    border-radius: 50%;
+    width: 18px; /* Slightly smaller */
+    height: 18px;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  /* Container for main action buttons */
+  #main-action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      flex-basis: content; /* Don't grow excessively */
+  }
+  
+  /* == UPDATED Button Styles (Pill, Light Blue, 3D) == */
+  button {
+    cursor: pointer; color: white; border: none; padding: 10px 20px; margin: 0; /* Let gap handle spacing */ font-size: 0.95em; background-color: #5dade2; border-radius: 999px; border-bottom: 3px solid #3498db; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); transition: all 0.15s ease; text-shadow: 0 1px 1px rgba(0,0,0,0.1);
+  }
+  button:hover { background-color: #85c1e9; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
+  button:active { transform: translateY(1px); border-bottom-width: 1px; box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3); background-color: #4a90e2; color: rgba(255,255,255,0.9); }
+  button:disabled { background-color: #bdc3c7; border-bottom-color: #95a5a6; cursor: not-allowed; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1); transform: none; color: #ecf0f1; text-shadow: none; }
+  
+  
+  /* == UPDATED Calendar Appearance == */
+  .calendar {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 20px;
+  }
+  .day {
+    background: #fff; padding: 15px; min-height: 700px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    /* Subtle horizontal lines using gradient */
+    background-image: repeating-linear-gradient( to bottom, #f8f9fa 0, #f8f9fa 1px, transparent 1px, transparent 60px /* Approx 1 hour spacing */ );
+    background-size: 100% 60px;
+    background-color: #fff; /* Base color */
+    border: 1px solid #e9ecef;
+  }
+  .day strong { display: block; margin-bottom: 15px; font-size: 1.1em; color: #343a40; border-bottom: 1px solid #eee; padding-bottom: 8px; font-weight: 600; }
+  
+  /* == UPDATED Time Slot Appearance == */
+  .time-slot {
+    background: rgba(93, 173, 226, 0.1); /* Lighter blue based on button */
+    border-left: 4px solid #5dade2; /* Match button blue */
+    /* INCREASED PADDING */
+    padding: 8px 12px;
+    border-radius: 4px; margin-bottom: 8px; font-size: 0.9em; line-height: 1.4; /* Slightly increased line-height */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05); /* Subtle shadow on slots */
+  }
+  .time-slot strong {
+      font-weight: 600; /* Make course code slightly bolder */
+      color: #333;
+  }
+  .time-slot small {
+      color: #555; /* Slightly darker text for details */
+      font-size: 0.95em;
+  }
+  
+  /* Specific Slot Types */
+  .standard-slot { /* Keep standard */ }
+  .tba-slot { background: rgba(200, 200, 200, 0.175); border-left-color: #aaa; }
+  .tba-slot small { font-style: italic; }
+  .time-slot-conflict { background: rgba(231, 76, 60, 0.15); border-left-color: #e74c3c; }
+  /* Example for non-standard time but on specific days */
+  .non-standard-time-slot { background: rgba(243, 156, 18, 0.1); border-left-color: #f39c12; /* Orangeish */ }
+  
+  
+  /* == Search Popup Styles (Keep as is) == */
+  #search-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none; z-index: 1000; width: 90%; max-width: 600px; }
+  .close-btn { cursor: pointer; color: #e74c3c; float: right; font-size: 24px; line-height: 1; font-weight: bold;}
+  #popup-search { width: calc(100% - 22px); font-size: 16px; box-sizing: border-box; }
+  #popup-results { max-height: 300px; overflow-y: auto; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;}
+  #popup-results div { margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #f0f0f0; font-size: 0.95em; }
+  #popup-results div:last-child { border-bottom: none; }
+  #popup-results button.add-button { padding: 5px 10px; font-size: 0.9em; /* Uses general button styles now */ }
+  
+  
+  /* == Notification Styles (Keep as is) == */
+  #notification-area { position: fixed; top: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; max-width: 300px; }
+  .notification { background-color: rgba(0, 0, 0, 0.7); color: white; padding: 12px 18px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); font-size: 0.95em; opacity: 0; transform: translateX(100%); transition: opacity 0.4s ease, transform 0.4s ease; cursor: pointer; }
+  .notification.visible { opacity: 1; transform: translateX(0); }
+  .notification.success { background-color: rgba(46, 204, 113, 0.8); }
+  .notification.warning { background-color: rgba(243, 156, 18, 0.8); }
+  .notification.error { background-color: rgba(231, 76, 60, 0.8); }
+  
+  
+  /* == Modal Styles (Keep as is, already added previously) == */
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); display: none; align-items: center; justify-content: center; z-index: 1050; opacity: 0; transition: opacity 0.3s ease; }
+  .modal-overlay.modal-visible { display: flex; opacity: 1; }
+  .modal { background-color: white; padding: 25px 35px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); z-index: 1060; max-width: 90%; width: 450px; text-align: center; pointer-events: auto; }
+  .modal h3 { margin-top: 0; margin-bottom: 20px; color: #333; }
+  .modal select { display: block; width: 100%; margin-bottom: 15px; }
+  .modal button { margin-top: 15px; width: 80%; } /* Uses general button styles */
+  .modal-status-message { min-height: 1.2em; font-style: italic; color: #666; margin-bottom: 15px; }
+  .modal-status-message.error { color: #e74c3c; font-weight: bold; }
