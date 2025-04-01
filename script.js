@@ -868,37 +868,39 @@ function addFromSearch(course) {
 // --- Notification Function ---
 let notificationTimeoutId = null
 function showNotification(message, type = "normal", duration = 4000) {
-  /* (No changes needed) */ if (!notificationArea) {
+  if (!notificationArea) {
     alert(message)
     return
   }
   const notification = document.createElement("div")
   notification.className = `notification ${type}`
   notification.textContent = message
-  notification.addEventListener(
-    "click",
-    () => {
-      notification.classList.remove("visible")
-      notification.addEventListener("transitionend", () => notification.remove(), { once: true })
-      if (notificationTimeoutId === Number(notification.dataset.timeoutId)) {
-        clearTimeout(notificationTimeoutId)
-        notificationTimeoutId = null
-      }
-    },
-    { once: true },
-  )
+  
+  // Add to DOM
   notificationArea.appendChild(notification)
-  requestAnimationFrame(() => notification.classList.add("visible"))
-  if (notificationTimeoutId) clearTimeout(notificationTimeoutId)
-  const newTimeoutId = setTimeout(() => {
-    if (notification.parentElement) {
-      notification.classList.remove("visible")
-      notification.addEventListener("transitionend", () => notification.remove(), { once: true })
-    }
-    if (notificationTimeoutId === newTimeoutId) notificationTimeoutId = null
-  }, duration)
-  notification.dataset.timeoutId = newTimeoutId.toString()
-  notificationTimeoutId = newTimeoutId
+  
+  // Force browser to process the addition before adding visible class
+  notification.offsetHeight // Force reflow
+  
+  // Make visible with transition
+  notification.classList.add("visible")
+  
+  // Set up removal
+  const removeNotification = () => {
+    notification.classList.remove("visible")
+    // Wait for transition to complete before removing from DOM
+    notification.addEventListener("transitionend", () => {
+      notification.remove()
+    }, { once: true })
+  }
+  
+  // Set timeout for automatic removal
+  setTimeout(removeNotification, duration)
+  
+  // Allow click to dismiss early
+  notification.addEventListener("click", () => {
+    removeNotification()
+  }, { once: true })
 }
 
 // --- Event Listener Setup ---
@@ -977,7 +979,7 @@ function handleModalConfirm() {
   // Show Loading Indicator and disable buttons
   if (loadingIndicator) loadingIndicator.style.display = "flex"
   disableButtons(true) // Ensure main buttons are disabled
-  showNotification("Loading course data...", "normal", 3000)
+  showNotification("Loading course data...","normal",4000)
 
   // Fetch Courses now
   fetchCourses()
