@@ -1,1 +1,5 @@
-this is a the readme file
+The app/website will be called Course Ease. Mobile app implementation will come in later sprints, but the general premise of the project is to be a schedule builder that functions similarly to Coursicle. It is geared towards ECS majors right now with the dataset coming mostly from Syracuse University, though it can be expanded to be more dynamic and include courses for other majors in the university. 
+
+It serves essentially as a schedule builder that incorporates information from DegreeWorks - so taking courses from the usual path a student may take in regards to earning specific credits for their major. For example, freshmen students who are Computer Science majors usually take ECS 101, CIS 151, MAT 295, FYS 101 and another class during their time in the first semester. This project will incorporate that information by deriving from the expected path of courses and add it to the schedule. 
+
+This is a good alternative to scheduling meetings with advisors and doing research on what courses they should take in their own time, as this can be overwhelming and rather intimidating for new students. 
