@@ -1,5 +1,5 @@
-// script.js
-// Final version incorporating modal, loading indicator, dynamic display, etc.
+// Enhanced Engineering Course Scheduler
+// Main JavaScript file
 
 console.log("Script loaded. Initializing...")
 
@@ -36,14 +36,21 @@ const popupSearchInput = document.getElementById("popup-search")
 const popupResultsContainer = document.getElementById("popup-results")
 // Other UI
 const notificationArea = document.getElementById("notification-area")
+const courseDetailsModal = document.getElementById("course-details-modal")
+const courseDetailsContent = document.getElementById("course-details-content")
 
 // --- Constants ---
 const requirementsFile = "engineering_majors_requirements.json"
 const coursesFile = "courses.csv"
 
+// Calendar constants
+const CALENDAR_START_HOUR = 8; // 8 AM
+const HOUR_HEIGHT = 60; // 60px per hour
+const MINUTES_PER_HOUR = 60;
+
 // --- Utility Functions ---
 
-// Add this function to get the department code from a class name
+// Get the department code from a class name
 function getDepartmentCode(className) {
   if (!className) return ""
   // Extract the department code (letters before the first number)
@@ -56,7 +63,7 @@ function getDepartmentCode(className) {
  */
 function parseTimeToMinutes(timeString) {
   if (!timeString || typeof timeString !== "string") return Number.NaN
-  const timeRegex = /(\d{1,2}):(\d{2})\s*([AP]M)\s*-/i
+  const timeRegex = /(\d{1,2}):(\d{2})\s*([AP]M)/i
   const match = timeString.match(timeRegex)
   if (!match) return Number.NaN
   let hour = Number.parseInt(match[1], 10)
@@ -112,7 +119,7 @@ function updateModalStatus(message, isError = false) {
  * Fetches and parses the major requirements JSON file.
  */
 function fetchRequirements() {
-  console.log(`Workspaceing ${requirementsFile}...`)
+  console.log(`Fetching ${requirementsFile}...`)
   return fetch(requirementsFile)
     .then((res) => {
       if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${requirementsFile}`)
@@ -136,7 +143,7 @@ function fetchRequirements() {
  * Fetches the courses CSV file and uses PapaParse for parsing.
  */
 function fetchCourses() {
-  console.log(`Workspaceing ${coursesFile}...`)
+  console.log(`Fetching ${coursesFile}...`)
   return fetch(coursesFile)
     .then((res) => {
       if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${coursesFile}`)
@@ -145,7 +152,7 @@ function fetchCourses() {
       })
     })
     .then((csvData) => {
-      console.log(`Workspaceed ${coursesFile}. Size: ${csvData.length} bytes.`)
+      console.log(`Fetched ${coursesFile}. Size: ${csvData.length} bytes.`)
       if (!csvData || csvData.trim().length === 0) {
         console.warn(`${coursesFile} is empty.`)
         courses = []
@@ -297,7 +304,6 @@ function generateBestSchedule() {
  * Checks for time conflicts.
  */
 function hasConflict(newCourse) {
-  // (No changes needed)
   if (!newCourse?.DaysTimes || typeof newCourse.DaysTimes !== "string") return false
   const dayRegex = /Mo|Tu|We|Th|Fr/gi
   const timeRegex = /(\d{1,2}):(\d{2})\s*([AP]M)\s*-\s*(\d{1,2}):(\d{2})\s*([AP]M)/i
@@ -342,7 +348,6 @@ function hasConflict(newCourse) {
  * Clears selected courses and rerenders.
  */
 function resetSchedule() {
-  // (No changes needed)
   console.log("--- resetSchedule called ---")
   selectedCourses = []
   renderSchedule()
@@ -362,9 +367,15 @@ function renderSchedule() {
   const dayMap = { mo: "Monday", tu: "Tuesday", we: "Wednesday", th: "Thursday", fr: "Friday" }
   const fallbackDayId = "Monday"
 
+  // Clear all time slots first
   daysOfWeek.forEach((dayId) => {
-    const el = document.getElementById(dayId)
-    if (el) el.querySelectorAll(".time-slot").forEach((slot) => slot.remove())
+    const dayElement = document.getElementById(dayId)
+    if (dayElement) {
+      const slotsContainer = dayElement.querySelector(".time-slots-container")
+      if (slotsContainer) {
+        slotsContainer.innerHTML = ""
+      }
+    }
   })
 
   if (!selectedCourses || selectedCourses.length === 0) {
@@ -394,6 +405,11 @@ function renderSchedule() {
     const matchedDays = course.DaysTimes.match(dayRegex)
     const hasStandardDays = matchedDays && matchedDays.length > 0
 
+    // Parse time for positioning
+    const timeRegex = /(\d{1,2}):(\d{2})\s*([AP]M)\s*-\s*(\d{1,2}):(\d{2})\s*([AP]M)/i
+    const timeMatch = course.DaysTimes.match(timeRegex)
+    
+    // Get time display text
     const timeDisplayMatch = course.DaysTimes.match(/(\d{1,2}:\d{2}\s*[AP]M\s*-\s*\d{1,2}:\d{2}\s*[AP]M)/i)
     const timeText = timeDisplayMatch ? timeDisplayMatch[0] : `Days/Time: ${course.DaysTimes}`
 
@@ -405,58 +421,109 @@ function renderSchedule() {
     const deptCode = getDepartmentCode(course.Class)
     const deptClass = deptCode ? `dept-${deptCode}` : ""
 
-    if (hasStandardDays) {
+    if (hasStandardDays && timeMatch) {
+      // Calculate position and height based on time
+      const startHour = parseInt(timeMatch[1], 10)
+      const startMinute = parseInt(timeMatch[2], 10)
+      const startPeriod = timeMatch[3].toUpperCase()
+      const endHour = parseInt(timeMatch[4], 10)
+      const endMinute = parseInt(timeMatch[5], 10)
+      const endPeriod = timeMatch[6].toUpperCase()
+      
+      // Convert to 24-hour format
+      let start24Hour = startHour
+      if (startPeriod === "PM" && startHour !== 12) start24Hour += 12
+      if (startPeriod === "AM" && startHour === 12) start24Hour = 0
+      
+      let end24Hour = endHour
+      if (endPeriod === "PM" && endHour !== 12) end24Hour += 12
+      if (endPeriod === "AM" && endHour === 12) end24Hour = 0
+      
+      // Calculate minutes from calendar start
+      const startMinutes = (start24Hour * 60 + startMinute) - (CALENDAR_START_HOUR * 60)
+      const endMinutes = (end24Hour * 60 + endMinute) - (CALENDAR_START_HOUR * 60)
+      
+      // Calculate position and height
+      const topPosition = (startMinutes / MINUTES_PER_HOUR) * HOUR_HEIGHT
+      const height = ((endMinutes - startMinutes) / MINUTES_PER_HOUR) * HOUR_HEIGHT
+      
+      // Create and position time slots for each day
       matchedDays.forEach((dayCode) => {
         const dayName = dayMap[dayCode.toLowerCase()]
         if (dayName) {
           const dayElement = document.getElementById(dayName)
           if (dayElement) {
-            const slot = document.createElement("div")
+            const slotsContainer = dayElement.querySelector(".time-slots-container")
+            if (slotsContainer) {
+              const slot = document.createElement("div")
 
-            // Apply appropriate classes including department styling
-            let slotClass = timeDisplayMatch ? "time-slot standard-slot" : "time-slot non-standard-time-slot"
-            if (deptClass) slotClass += ` ${deptClass}`
+              // Apply appropriate classes including department styling
+              let slotClass = "time-slot standard-slot"
+              if (deptClass) slotClass += ` ${deptClass}`
+              if (courseNotes[htmlId]) slotClass += " has-notes"
 
-            slot.className = slotClass
-            slot.innerHTML = `
-                            <strong>${courseId}</strong>
-                            <div class="time-slot-time">${timeText}</div>
-                            ${courseDetails}
-                        `
-            slot.dataset.courseId = htmlId
+              slot.className = slotClass
+              slot.innerHTML = `
+                <strong>${courseId}</strong>
+                <div class="time-slot-time">${timeText}</div>
+                <div class="time-slot-days">${matchedDays.length > 1 ? 'Meets on: ' + matchedDays.join(', ') : ''}</div>
+                ${courseDetails}
+              `
+              slot.dataset.courseId = htmlId
+              
+              // Add a data attribute to identify this as part of a multi-day course
+              if (matchedDays.length > 1) {
+                slot.dataset.multiDay = "true";
+                slot.dataset.courseDays = matchedDays.join("");
+              }
 
-            // Add click event for more details
-            slot.addEventListener("click", () => {
-              showCourseDetails(course)
-            })
+              // Position the slot based on time
+              slot.style.top = `${topPosition}px`;
+              slot.style.height = `${height}px`;
+              
+              // Add click event for more details
+              slot.addEventListener("click", () => {
+                showCourseDetails(course)
+              })
 
-            dayElement.appendChild(slot)
+              slotsContainer.appendChild(slot)
+            }
           }
         }
       })
     } else {
+      // Handle TBA or non-standard time courses
       const fallbackElement = document.getElementById(fallbackDayId)
       if (fallbackElement) {
-        const slot = document.createElement("div")
+        const slotsContainer = fallbackElement.querySelector(".time-slots-container")
+        if (slotsContainer) {
+          const slot = document.createElement("div")
 
-        // Apply TBA styling plus department if available
-        let slotClass = "time-slot tba-slot"
-        if (deptClass) slotClass += ` ${deptClass}`
+          // Apply TBA styling plus department if available
+          let slotClass = "time-slot tba-slot"
+          if (deptClass) slotClass += ` ${deptClass}`
+          if (courseNotes[htmlId]) slotClass += " has-notes"
 
-        slot.className = slotClass
-        slot.innerHTML = `
-                    <strong>${courseId} (TBA/Other)</strong>
-                    <div class="time-slot-time">${timeText}</div>
-                    ${courseDetails}
-                `
-        slot.dataset.courseId = htmlId
+          slot.className = slotClass
+          slot.innerHTML = `
+              <strong>${courseId} (TBA/Other)</strong>
+              <div class="time-slot-time">${timeText}</div>
+              ${courseDetails}
+          `
+          slot.dataset.courseId = htmlId
+          
+          // Position at the top of the calendar
+          slot.style.top = "0px";
+          slot.style.height = "auto";
+          slot.style.minHeight = "60px";
 
-        // Add click event for more details
-        slot.addEventListener("click", () => {
-          showCourseDetails(course)
-        })
+          // Add click event for more details
+          slot.addEventListener("click", () => {
+            showCourseDetails(course)
+          })
 
-        fallbackElement.appendChild(slot)
+          slotsContainer.appendChild(slot)
+        }
       }
     }
   })
@@ -468,38 +535,48 @@ function renderSchedule() {
   }
 }
 
-// Add a function to show course details when clicking on a course
+// Show course details when clicking on a course
 function showCourseDetails(course) {
   if (!course) return
 
-  // Create a simple modal to show course details
+  // Create content for the course details modal
   const detailsHtml = `
-        <div style="text-align: left; margin-bottom: 20px;">
-            <h3>${course.Class} ${course.Section || ""}</h3>
-            <p><strong>Days/Times:</strong> ${course.DaysTimes || "TBA"}</p>
-            <p><strong>Instructor:</strong> ${course.Instructor || "TBA"}</p>
-            <p><strong>Room:</strong> ${course.Room || "TBA"}</p>
-            <p><strong>Meeting Dates:</strong> ${course.MeetingDates || "TBA"}</p>
-        </div>
-        <button onclick="this.parentNode.remove()">Close</button>
-    `
+    <div class="course-details">
+      <h4>${course.Class} ${course.Section || ""}</h4>
+      <div class="detail-item">
+        <i class="fas fa-calendar-alt"></i>
+        <span><strong>Days/Times:</strong> ${course.DaysTimes || "TBA"}</span>
+      </div>
+      <div class="detail-item">
+        <i class="fas fa-user"></i>
+        <span><strong>Instructor:</strong> ${course.Instructor || "TBA"}</span>
+      </div>
+      <div class="detail-item">
+        <i class="fas fa-map-marker-alt"></i>
+        <span><strong>Room:</strong> ${course.Room || "TBA"}</span>
+      </div>
+      <div class="detail-item">
+        <i class="fas fa-calendar-day"></i>
+        <span><strong>Meeting Dates:</strong> ${course.MeetingDates || "TBA"}</span>
+      </div>
+    </div>
+  `
 
-  const detailsModal = document.createElement("div")
-  detailsModal.className = "modal"
-  detailsModal.style.position = "fixed"
-  detailsModal.style.top = "50%"
-  detailsModal.style.left = "50%"
-  detailsModal.style.transform = "translate(-50%, -50%)"
-  detailsModal.style.zIndex = "2000"
-  detailsModal.style.padding = "25px"
-  detailsModal.style.backgroundColor = "white"
-  detailsModal.style.borderRadius = "10px"
-  detailsModal.style.boxShadow = "0 10px 25px rgba(0,0,0,0.2)"
-  detailsModal.style.maxWidth = "90%"
-  detailsModal.style.width = "400px"
+  // Update and show the modal
+  if (courseDetailsContent) {
+    courseDetailsContent.innerHTML = detailsHtml
+  }
+  
+  if (courseDetailsModal) {
+    courseDetailsModal.classList.add("modal-visible")
+  }
+}
 
-  detailsModal.innerHTML = detailsHtml
-  document.body.appendChild(detailsModal)
+// Close the course details modal
+function closeCourseDetailsModal() {
+  if (courseDetailsModal) {
+    courseDetailsModal.classList.remove("modal-visible")
+  }
 }
 
 /**
@@ -668,9 +745,15 @@ function updateListView() {
       <td>${course.Instructor || "N/A"}</td>
       <td>${course.Room || "N/A"}</td>
       <td class="course-actions">
-        <button onclick="showCourseDetails(selectedCourses[${selectedCourses.indexOf(course)}])" class="secondary-button">Details</button>
-        <button onclick="openNotesModal('${course.id}')" class="secondary-button">Notes</button>
-        <button onclick="removeCourse('${course.id}')" class="secondary-button">Remove</button>
+        <button onclick="showCourseDetails(selectedCourses[${selectedCourses.indexOf(course)}])" class="icon-button">
+          <i class="fas fa-info-circle"></i>
+        </button>
+        <button onclick="openNotesModal('${course.id}')" class="icon-button">
+          <i class="fas fa-sticky-note"></i>
+        </button>
+        <button onclick="removeCourse('${course.id}')" class="icon-button">
+          <i class="fas fa-trash-alt"></i>
+        </button>
       </td>
     `
 
@@ -780,9 +863,9 @@ function exportSchedule(format) {
 
 // --- Search Popup Logic ---
 function togglePopup() {
-  /* (No changes needed) */ if (!popup) return
-  const isVisible = popup.style.display === "block"
-  popup.style.display = isVisible ? "none" : "block"
+  if (!popup) return
+  const isVisible = getComputedStyle(popup).display !== "none"
+  popup.style.display = isVisible ? "none" : "flex"
   if (!isVisible) {
     if (popupSearchInput) {
       popupSearchInput.value = ""
@@ -824,13 +907,15 @@ function popupSearch(event) {
           const deptClass = deptCode ? `dept-${deptCode}` : ""
 
           return `
-                <div class="${deptClass}" style="border-left: 4px solid; padding-left: 10px;">
-                    <span>
-                        <strong>${c.Class} ${c.Section}</strong><br>
-                        <small>${c.DaysTimes || "TBA"} - ${c.Instructor || "N/A"}</small>
-                    </span>
-                    <button class="add-button" data-course-index="${index}">Add</button>
-                </div>`
+            <div class="${deptClass}" style="border-left: 4px solid; padding-left: 10px;">
+                <span>
+                    <strong>${c.Class} ${c.Section}</strong><br>
+                    <small>${c.DaysTimes || "TBA"} - ${c.Instructor || "N/A"}</small>
+                </span>
+                <button class="add-button primary-button" data-course-index="${index}">
+                    <i class="fas fa-plus"></i> Add
+                </button>
+            </div>`
         })
         .join("")
     } else {
@@ -843,7 +928,7 @@ function popupSearch(event) {
 }
 
 function addFromSearch(course) {
-  /* (No changes needed) */ if (!course?.Class) {
+  if (!course?.Class) {
     alert("Cannot add: Invalid data.")
     return
   }
@@ -908,8 +993,8 @@ function setupEventListeners() {
   // Listener for search results
   if (popupResultsContainer) {
     popupResultsContainer.addEventListener("click", (event) => {
-      if (event.target?.classList.contains("add-button")) {
-        const button = event.target
+      if (event.target?.classList.contains("add-button") || event.target?.parentElement?.classList.contains("add-button")) {
+        const button = event.target.classList.contains("add-button") ? event.target : event.target.parentElement;
         const courseIndexStr = button.dataset.courseIndex
         if (courseIndexStr != null) {
           const index = Number.parseInt(courseIndexStr, 10)
@@ -1055,4 +1140,3 @@ function initializeApp() {
 
 // --- Start the application ---
 initializeApp()
-
