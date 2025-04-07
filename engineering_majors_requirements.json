@@ -1,0 +1,28 @@
+{
+  "Unknown": {
+    "Aerospace Engineering, BS": {
+      "Freshman": ["ECS 101", "CHE 106", "CHE 107", "WRT 105", "FYS 101", "ECS 104"],
+      "Sophomore": ["MAT 295", "MAT 296", "PHY 211", "PHY 221", "WRT 205", "ECS 221"],
+      "Junior": ["ECS 326", "MAT 397", "ECS 325", "MAE 315", "MAE 341", "MAE 312"],
+      "Senior": ["MAT 485", "AEE 471", "AEE 427", "AEE 446", "AEE 577", "AEE 472"]
+    },
+    "Biomedical Engineering, BS": {
+      "Freshman": ["CHE 106", "CHE 107", "ECS 101", "WRT 105", "FYS 101", "CHE 116"],
+      "Sophomore": ["MAT 295", "MAT 296", "PHY 211", "PHY 221", "BEN 201", "BEN 231"],
+      "Junior": ["MAT 397", "BEN 333", "ECS 326", "BEN 341", "BEN 364", "BEN 375"],
+      "Senior": ["MAT 485", "BEN 568", "BEN 565", "BEN 481", "BEN 485", "BEN 486"]
+    },
+    "Computer Science, BS": {
+      "Freshman": ["ECS 101", "CIS 252", "WRT 105", "FYS 101", "MAT 295", "PHY 211"],
+      "Sophomore": ["CRS 225", "MAT 296", "CIS 351", "PHI 251", "CIS 321", "MAT 331"],
+      "Junior": ["CIS 341", "CIS 352", "CIS 375", "CIS 477", "CIS 473", "CSE 384"],
+      "Senior": ["CIS 453", "CIS 454", "CIS 400", "CIS 425", "CIS 428", "CSE 486"]
+    },
+    "Mechanical Engineering, BS": {
+      "Freshman": ["ECS 101", "CHE 106", "CHE 107", "WRT 105", "FYS 101", "ECN 101"],
+      "Sophomore": ["MAT 295", "ECN 203", "MAT 296", "PHY 211", "PHY 221", "WRT 205"],
+      "Junior": ["ECS 326", "MAT 397", "ECS 325", "MAE 315", "MAE 341", "MAE 312"],
+      "Senior": ["MAT 485", "MEE 416", "MEE 431", "MEE 471", "MAE 530", "MAE 571"]
+    }
+  }
+}
