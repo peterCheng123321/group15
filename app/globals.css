@@ -143,6 +143,12 @@
   background: linear-gradient(135deg, white 0%, hsl(var(--primary-50)) 100%);
 }
 
+/* Add the bg-gradient-primary class */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, hsl(var(--primary-400)) 0%, hsl(var(--primary-600)) 100%);
+  color: white;
+}
+
 /* Card hover effects */
 .hover-card-effect {
   transition: all 0.3s ease;
