@@ -42,40 +42,55 @@ export default function CourseScheduler() {
   useEffect(() => {
     const initializeApp = async () => {
       try {
+        setIsLoading(true);
         const requirementsData = await fetchRequirements()
         setRequirements(requirementsData)
+        console.log("Requirements loaded:", Object.keys(requirementsData).length, "majors");
 
-        // Extract majors from requirements
-        const majorsList = Object.keys(requirementsData).flatMap((key) => {
-          return Object.keys(requirementsData[key]).map((majorName) => ({
-            id: majorName,
-            name: majorName,
-          }))
-        })
+        // Extract majors directly from the requirements
+        const majorsList = Object.keys(requirementsData).map((majorName) => ({
+          id: majorName,
+          name: majorName,
+        }));
 
         setMajors(majorsList)
         setIsDataReady(true)
+        
+        // Load courses right away
+        try {
+          const coursesData = await fetchCourses()
+          setCourses(coursesData)
+          console.log("Courses loaded:", coursesData.length);
+          showNotification("Course data loaded successfully", "success")
+        } catch (error) {
+          console.error("Failed to load courses:", error)
+          showNotification("Failed to load courses. Please try again.", "error")
+        }
       } catch (error) {
         console.error("Failed to initialize app:", error)
         showNotification("Failed to load majors. Please refresh the page.", "error")
+      } finally {
+        setIsLoading(false);
       }
     }
 
     initializeApp()
   }, [])
 
-  // Load courses after major and year selection
+  // Only generate schedule after major and year selection
   useEffect(() => {
-    if (selectedMajor && selectedYear) {
-      loadCourses()
+    if (selectedMajor && selectedYear && courses.length > 0) {
+      // Automatically generate a schedule when selection changes
+      // generateBestSchedule() // Uncomment this if you want auto-generation
     }
-  }, [selectedMajor, selectedYear])
+  }, [selectedMajor, selectedYear, courses.length])
 
   const loadCourses = async () => {
     setIsLoading(true)
     try {
       const coursesData = await fetchCourses()
       setCourses(coursesData)
+      console.log("Loaded courses:", coursesData.length);
       showNotification("Course data loaded successfully", "success")
     } catch (error) {
       console.error("Failed to load courses:", error)
@@ -87,57 +102,148 @@ export default function CourseScheduler() {
 
   // Generate best schedule based on major and year
   const generateBestSchedule = () => {
-    if (!selectedMajor || !selectedYear || Object.keys(requirements).length === 0 || courses.length === 0) {
-      showNotification("Please confirm selection or wait for data to load.", "error")
-      return
+    if (!selectedMajor || !selectedYear || Object.keys(requirements).length === 0) {
+      showNotification("Please confirm selection or wait for data to load.", "error");
+      return;
     }
+
+    if (courses.length === 0) {
+      showNotification("No courses available. Please try refreshing the page.", "error");
+      console.error("Courses array is empty when generating schedule");
+      return;
+    }
+
+    console.log("Generating schedule for major:", selectedMajor, "year:", selectedYear);
+    console.log("Available courses:", courses.length);
+    console.log("Requirements keys:", Object.keys(requirements));
 
     // Reset current schedule
-    setSelectedCourses([])
+    setSelectedCourses([]);
 
     // Get suggested courses for the selected major and year
-    const majorRequirements = Object.values(requirements)[0]
-    const suggestedCourseCodes = majorRequirements[selectedMajor]?.[selectedYear]
-
-    if (!suggestedCourseCodes || suggestedCourseCodes.length === 0) {
-      showNotification("No suggested courses listed for your selection.", "warning")
-      return
+    const majorRequirements = requirements[selectedMajor];
+    if (!majorRequirements) {
+      showNotification(`No requirements found for major: ${selectedMajor}`, "error");
+      console.error("Could not find requirements for major:", selectedMajor);
+      return;
     }
 
-    let coursesAddedCount = 0
-    const newSelectedCourses: SelectedCourse[] = []
+    const yearRequirements = majorRequirements[selectedYear];
+    if (!yearRequirements || !Array.isArray(yearRequirements) || yearRequirements.length === 0) {
+      showNotification(`No suggested courses listed for ${selectedMajor} - ${selectedYear}.`, "warning");
+      console.error("Year requirements missing or empty for:", selectedMajor, selectedYear);
+      return;
+    }
 
-    suggestedCourseCodes.forEach((code) => {
-      if (!code) return
+    console.log("Required courses for", selectedMajor, selectedYear, ":", yearRequirements);
 
-      const possibleSections = courses.filter((c) => c.Class?.toLowerCase() === code.toLowerCase())
+    // Print first few courses for debugging
+    console.log("Sample available courses:");
+    courses.slice(0, 5).forEach(course => {
+      console.log(`- ${course.id}: Class=${course.Class}, Section=${course.Section}`);
+    });
 
-      let added = false
+    let coursesAddedCount = 0;
+    const newSelectedCourses: SelectedCourse[] = [];
+    const notFoundCourses: string[] = [];
+
+    // Loop through each course code
+    for (let i = 0; i < yearRequirements.length; i++) {
+      const code = yearRequirements[i];
+      if (!code) continue;
+
+      // Handle both formats - with or without spaces
+      const normalizedCode = code.trim();
+      const codeWithoutSpace = normalizedCode.replace(/\s+/g, '');
+      
+      // Find all possible sections of this course - more flexible matching
+      const possibleSections = courses.filter((c) => {
+        if (!c.Class) return false;
+        
+        const courseClass = c.Class.trim();
+        const courseClassNoSpace = courseClass.replace(/\s+/g, '');
+        
+        // Try multiple matching strategies
+        return (
+          courseClass.toLowerCase() === normalizedCode.toLowerCase() || // Exact match with spaces
+          courseClassNoSpace.toLowerCase() === codeWithoutSpace.toLowerCase() || // Match without spaces
+          courseClass.toLowerCase().includes(normalizedCode.toLowerCase()) // Partial match
+        );
+      });
+
+      console.log(`Looking for course ${code}: found ${possibleSections.length} possible sections`);
+      
+      if (possibleSections.length === 0) {
+        // Try a more lenient search if no matches found
+        const lenientSections = courses.filter(c => 
+          c.Class && c.Class.replace(/\s+/g, '').toLowerCase().includes(codeWithoutSpace.toLowerCase())
+        );
+        
+        if (lenientSections.length > 0) {
+          console.log(`Found ${lenientSections.length} sections with lenient matching for ${code}`);
+          
+          let added = false;
+          for (const section of lenientSections) {
+            if (!hasConflict(section, newSelectedCourses)) {
+              newSelectedCourses.push({
+                ...section,
+                id: `course-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              });
+              added = true;
+              coursesAddedCount++;
+              break;
+            }
+          }
+          
+          if (!added) {
+            showNotification(`Could not add "${code}": All sections conflict.`, "warning");
+          }
+        } else {
+          notFoundCourses.push(code);
+        }
+        continue;
+      }
+
+      let added = false;
       for (const section of possibleSections) {
         if (!hasConflict(section, newSelectedCourses)) {
-          newSelectedCourses.push({
+          // Create a new SelectedCourse with a unique ID
+          const newCourse: SelectedCourse = {
             ...section,
             id: `course-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          })
-          added = true
-          coursesAddedCount++
-          break
+          };
+          
+          newSelectedCourses.push(newCourse);
+          added = true;
+          coursesAddedCount++;
+          break;
         }
       }
 
       if (!added && possibleSections.length > 0) {
-        showNotification(`Could not add "${code}": All sections conflict.`, "warning")
-      } else if (possibleSections.length === 0) {
-        showNotification(`Course code "${code}" not found.`, "warning")
+        showNotification(`Could not add "${code}": All sections conflict.`, "warning");
       }
-    })
+    }
 
-    setSelectedCourses(newSelectedCourses)
+    // Force a re-render by creating a new array
+    setSelectedCourses([...newSelectedCourses]);
+    console.log(`Added ${coursesAddedCount} courses to schedule. Schedule now has ${newSelectedCourses.length} courses.`);
+
+    if (notFoundCourses.length > 0) {
+      const message = notFoundCourses.length === 1 
+        ? `Could not find course: ${notFoundCourses[0]}`
+        : `Could not find ${notFoundCourses.length} courses: ${notFoundCourses.slice(0, 3).join(", ")}${notFoundCourses.length > 3 ? '...' : ''}`;
+      
+      showNotification(message, "warning");
+      console.warn("Courses not found:", notFoundCourses);
+    }
 
     if (coursesAddedCount > 0) {
-      showNotification(`Added ${coursesAddedCount} suggested course(s).`, "success")
+      showNotification(`Added ${coursesAddedCount} course(s) to your schedule.`, "success");
+    } else if (coursesAddedCount === 0 && notFoundCourses.length === 0) {
+      showNotification("No courses could be added to your schedule.", "error");
     }
-  }
+  };
 
   // Handle courses imported from image
   const handleImportFromImage = (importedCourses: SelectedCourse[]) => {
@@ -241,28 +347,33 @@ export default function CourseScheduler() {
 
   // Add course from search
   const addCourseFromSearch = (course: Course) => {
-    const alreadyAdded = selectedCourses.some((sc) => sc.Class === course.Class && sc.Section === course.Section)
+    // First check if the course exists in our database
+    const existingCourse = courses.find(
+      (c) => c.Class?.toLowerCase() === course.Class?.toLowerCase() && 
+             c.Section?.toLowerCase() === course.Section?.toLowerCase()
+    );
 
-    if (alreadyAdded) {
-      showNotification(`${course.Class} ${course.Section} is already added.`, "warning")
-      return
+    if (!existingCourse) {
+      showNotification(`Course ${course.Class} ${course.Section} not found in the database.`, "error");
+      return;
     }
 
-    if (!hasConflict(course, selectedCourses)) {
-      const newCourse: SelectedCourse = {
-        ...course,
-        id: `course-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      }
-
-      setSelectedCourses((prev) => [...prev, newCourse])
-      showNotification(`${course.Class} ${course.Section} added to your schedule.`, "success")
-
-      // Close the search popup after adding a course
-      setIsSearchPopupOpen(false)
-    } else {
-      showNotification(`Time conflict: Cannot add ${course.Class} ${course.Section}.`, "warning")
+    if (hasConflict(course, selectedCourses)) {
+      showNotification(`Time conflict: Cannot add ${course.Class} ${course.Section}.`, "warning");
+      return;
     }
-  }
+
+    const newCourse: SelectedCourse = {
+      ...course,
+      id: `course-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    };
+
+    setSelectedCourses((prev) => [...prev, newCourse]);
+    showNotification(`${course.Class} ${course.Section} added to your schedule.`, "success");
+
+    // Close the search popup after adding a course
+    setIsSearchPopupOpen(false);
+  };
 
   // Remove course
   const removeCourse = (courseId: string) => {
@@ -321,16 +432,24 @@ export default function CourseScheduler() {
   const showNotification = (
     message: string,
     type: "success" | "warning" | "error" | "default" = "default",
-    duration = 4000,
+    duration = 3000,
   ) => {
     const id = Date.now().toString()
+    
+    // Format message - make first letter uppercase if not already
+    const formattedMessage = message.charAt(0).toUpperCase() + message.slice(1);
+    
     const newNotification: Notification = {
       id,
-      message,
+      message: formattedMessage,
       type,
     }
 
-    setNotifications((prev) => [...prev, newNotification])
+    // Keep only the 2 most recent notifications to reduce clutter
+    setNotifications((prev) => {
+      const updatedNotifications = [...prev, newNotification];
+      return updatedNotifications.slice(-2);
+    })
 
     // Auto-remove notification after duration
     setTimeout(() => {
@@ -446,10 +565,11 @@ export default function CourseScheduler() {
       )}
 
       {isInitialModalOpen && (
-        <InitialSelectionModal majors={majors} isDataReady={isDataReady} onConfirm={handleSelectionConfirm} />
+        <InitialSelectionModal requirements={requirements} isDataReady={isDataReady} onConfirm={handleSelectionConfirm} />
       )}
 
       <NotificationArea notifications={notifications} onRemove={removeNotification} />
     </div>
   )
 }
+

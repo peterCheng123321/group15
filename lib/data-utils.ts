@@ -1,176 +1,6 @@
-// import type { Course, Requirements } from "./types"
-
-// // Add this function at the top of the file to parse CSV data
-// export async function parseCsvFile(filePath: string): Promise<Course[]> {
-//   try {
-//     const response = await fetch(filePath)
-//     if (!response.ok) {
-//       throw new Error(`Failed to fetch CSV file: ${response.status}`)
-//     }
-
-//     const csvText = await response.text()
-//     const lines = csvText.split("\n")
-//     const headers = lines[0].split(",")
-
-//     const courses: Course[] = []
-
-//     // Start from index 1 to skip headers
-//     for (let i = 1; i < lines.length; i++) {
-//       if (!lines[i].trim()) continue // Skip empty lines
-
-//       const values = lines[i].split(",")
-//       if (values.length < headers.length) continue // Skip malformed lines
-
-//       const course: Course = {
-//         id: `csv-course-${i}`,
-//         Class: values[0]?.trim() || "",
-//         Section: values[1]?.trim() || "",
-//         DaysTimes: values[2]?.trim() || "",
-//         Room: values[3]?.trim() || "",
-//         Instructor: values[4]?.trim() || "",
-//         MeetingDates: values[5]?.trim() || "",
-//         Reviews:[]
-//       }
-
-//       courses.push(course)
-//     }
-
-//     return courses
-//   } catch (error) {
-//     console.error("Error parsing CSV file:", error)
-//     return []
-//   }
-// }
-
-// // Mock function to fetch requirements
-// export async function fetchRequirements(): Promise<Requirements> {
-//   // In a real app, this would be a fetch call to your API
-//   return {
-//     Unknown: {
-//       "Aerospace Engineering, BS": {
-//         Freshman: ["ECS 101", "CHE 106", "CHE 107", "WRT 105", "FYS 101", "ECS 104"],
-//         Sophomore: ["MAT 295", "MAT 296", "PHY 211", "PHY 221", "WRT 205", "ECS 221"],
-//         Junior: ["ECS 326", "MAT 397", "ECS 325", "MAE 315", "MAE 341", "MAE 312"],
-//         Senior: ["MAT 485", "AEE 471", "AEE 427", "AEE 446", "AEE 577", "AEE 472"],
-//       },
-//       "Biomedical Engineering, BS": {
-//         Freshman: ["CHE 106", "CHE 107", "ECS 101", "WRT 105", "FYS 101", "CHE 116"],
-//         Sophomore: ["MAT 295", "MAT 296", "PHY 211", "PHY 221", "BEN 201", "BEN 231"],
-//         Junior: ["MAT 397", "BEN 333", "ECS 326", "BEN 341", "BEN 364", "BEN 375"],
-//         Senior: ["MAT 485", "BEN 568", "BEN 565", "BEN 481", "BEN 485", "BEN 486"],
-//       },
-//       "Computer Science, BS": {
-//         Freshman: ["ECS 101", "CIS 151", "WRT 105", "FYS 101"],
-//         Sophomore: ["CRS 225", "MAT 295", "MAT 296", "CIS 252", "PHI 251", "PHY 211"],
-//         Junior: ["CRS 325", "IST 344", "MAT 397", "MAT 331", "CIS 321", "PHI 378"],
-//         Senior: ["PHI 451", "PHI 551", "PHI 552", "CIS 453", "CIS 477", "CSE 486"],
-//       },
-//       "Mechanical Engineering, BS": {
-//         Freshman: ["ECS 101", "CHE 106", "CHE 107", "WRT 105", "FYS 101", "ECN 101"],
-//         Sophomore: ["MAT 295", "ECN 203", "MAT 296", "PHY 211", "PHY 221", "WRT 205"],
-//         Junior: ["ECS 326", "MAT 397", "ECS 325", "MAE 315", "MAE 341", "MAE 312"],
-//         Senior: ["MAT 485", "MEE 416", "MEE 431", "MEE 471", "MAE 530", "MAE 571"],
-//       },
-//     },
-//   }
-// }
-
-// // Replace the existing fetchCourses function with this updated version
-// export async function fetchCourses(): Promise<Course[]> {
-//   try {
-//     // Use the CSV parser to get courses from the CSV file
-//     const coursesFromCsv = await parseCsvFile("/courses.csv")
-
-//     if (coursesFromCsv.length > 0) {
-//       console.log(`Fetched ${coursesFromCsv.length} courses from CSV`)
-//       return coursesFromCsv
-//     }
-
-//     // Fallback to mock data if CSV parsing fails
-//     console.warn("Using fallback mock data for courses")
-//     return [
-//       {
-//         id: "course-1",
-//         Class: "ECS 101",
-//         Section: "M001",
-//         DaysTimes: "MoWe 9:30AM - 10:50AM",
-//         Room: "Link Hall 105",
-//         Instructor: "J. Smith",
-//         MeetingDates: "01/13/2025 - 04/28/2025",
-//       },
-//       {
-//         id: "course-2",
-//         Class: "CHE 106",
-//         Section: "M002",
-//         DaysTimes: "TuTh 11:00AM - 12:20PM",
-//         Room: "Science Building 210",
-//         Instructor: "A. Johnson",
-//         MeetingDates: "01/13/2025 - 04/28/2025",
-//       },
-//       {
-//         id: "course-3",
-//         Class: "MAT 295",
-//         Section: "M003",
-//         DaysTimes: "MoWeFr 8:00AM - 9:20AM",
-//         Room: "Carnegie Hall 100",
-//         Instructor: "P. Williams",
-//         MeetingDates: "01/13/2025 - 04/28/2025",
-//       },
-//       {
-//         id: "course-4",
-//         Class: "PHY 211",
-//         Section: "M001",
-//         DaysTimes: "TuTh 2:00PM - 3:20PM",
-//         Room: "Physics Building 120",
-//         Instructor: "R. Thompson",
-//         MeetingDates: "01/13/2025 - 04/28/2025",
-//       },
-//       {
-//         id: "course-5",
-//         Class: "WRT 105",
-//         Section: "M004",
-//         DaysTimes: "MoWe 1:00PM - 2:20PM",
-//         Room: "Hall of Languages 207",
-//         Instructor: "M. Davis",
-//         MeetingDates: "01/13/2025 - 04/28/2025",
-//       },
-//       {
-//         id: "course-6",
-//         Class: "CIS 151",
-//         Section: "M001",
-//         DaysTimes: "TuTh 9:30AM - 10:50AM",
-//         Room: "Hinds Hall 018",
-//         Instructor: "L. Wilson",
-//         MeetingDates: "01/13/2025 - 04/28/2025",
-//       },
-//       {
-//         id: "course-7",
-//         Class: "MAE 315",
-//         Section: "M002",
-//         DaysTimes: "MoWeFr 11:00AM - 12:20PM",
-//         Room: "Link Hall 203",
-//         Instructor: "K. Brown",
-//         MeetingDates: "01/13/2025 - 04/28/2025",
-//       },
-//       {
-//         id: "course-8",
-//         Class: "BEN 201",
-//         Section: "M001",
-//         DaysTimes: "TuTh 3:30PM - 4:50PM",
-//         Room: "Bowne Hall 110",
-//         Instructor: "S. Miller",
-//         MeetingDates: "01/13/2025 - 04/28/2025",
-//       },
-//     ]
-//   } catch (error) {
-//     console.error("Failed to fetch courses:", error)
-//     throw error
-//   }
-// }
-
 import type { Course, Requirements } from "./types";
 
-// Update the parseReviewsCsv function to include RMP_Rating
+// Function to parse reviews CSV including RMP_Rating
 async function parseReviewsCsv(
   filePath: string
 ): Promise<Map<string, { RMP_Rating: string; Reviews: string[] }>> {
@@ -184,23 +14,36 @@ async function parseReviewsCsv(
     const lines = csvText.split("\n");
     const reviewsMap = new Map<string, { RMP_Rating: string; Reviews: string[] }>();
 
+    // Skip header line
     for (let i = 1; i < lines.length; i++) {
-      if (!lines[i].trim()) continue; // Skip empty lines
+      if (!lines[i].trim()) continue;
 
-      const values = lines[i].split(",");
+      // Handle quoted fields and escaped commas - Improved parsing
+      const values = lines[i].match(/(".*?"|[^,\\s]+)(?=\\s*,|\\s*$)/g) || [];
+      const processedValues = values.map(value => {
+        // Remove quotes and trim
+        return value.replace(/^"|"$/g, '').trim();
+      });
 
-      // console.log(values);
+      if (processedValues.length < 5) {
+        console.warn(`Skipping malformed review line: ${lines[i]}`);
+        continue;
+      }
 
-      const professorName = values[0]?.trim() || "";
-      const rating = values[1]?.trim() || "";
+      const professorName = processedValues[0];
+      const rating = processedValues[1];
       const reviews = [
-        values[2]?.trim() || "", // RMP_Review1
-        values[3]?.trim() || "", // RMP_Review2
-        values[4]?.trim() || "", // RMP_Review3
-      ];
-      reviewsMap.set(professorName, { RMP_Rating: rating, Reviews: reviews });
+        processedValues[2], // RMP_Review1
+        processedValues[3], // RMP_Review2
+        processedValues[4], // RMP_Review3
+      ].filter(review => review); // Remove empty reviews
+
+      if (professorName) {
+        reviewsMap.set(professorName, { RMP_Rating: rating || "N/A", Reviews: reviews });
+      }
     }
-// console.log(reviewsMap);
+
+    console.log(`Successfully parsed ${reviewsMap.size} reviews`);
     return reviewsMap;
   } catch (error) {
     console.error("Error parsing reviews CSV file:", error);
@@ -208,332 +51,199 @@ async function parseReviewsCsv(
   }
 }
 
-// Update the parseCsvFile to merge the rating to the course object
-export async function parseCsvFile(
-  filePath: string,
-  reviewsFilePath: string
-): Promise<Course[]> {
+// Function to parse courses CSV and merge reviews/ratings
+async function parseCoursesCsv(coursesFilePath: string, reviewsFilePath: string): Promise<Course[]> {
   try {
-    const response = await fetch(filePath);
+    // First, parse the reviews
+    const reviewsMap = await parseReviewsCsv(reviewsFilePath);
+
+    // Then, parse the courses
+    const response = await fetch(coursesFilePath);
     if (!response.ok) {
-      throw new Error(`Failed to fetch CSV file: ${response.status}`);
+      throw new Error(`Failed to fetch courses CSV file: ${response.status}`);
     }
 
     const csvText = await response.text();
     const lines = csvText.split("\n");
-    const headers = lines[0].split(",");
+    
+    if (lines.length < 2) {
+      throw new Error("Courses CSV file is empty or has no data rows");
+    }
 
     const courses: Course[] = [];
 
-    // Fetch and parse reviews CSV
-    const reviewsMap = await parseReviewsCsv(reviewsFilePath);
-
-    // console.log(reviewsMap);
-
-    // Start from index 1 to skip headers
+    // Process data rows
     for (let i = 1; i < lines.length; i++) {
-      if (!lines[i].trim()) continue; // Skip empty lines
+      if (!lines[i].trim()) continue;
 
-      const values = lines[i].split(",");
-      // Use the instructor from the course CSV to look up reviews and rating
-      const instructorName = values[4]?.trim() || "";
+      // Handle quoted fields and escaped commas - Improved parsing
+      const values = lines[i].match(/(".*?"|[^,\\s]+)(?=\\s*,|\\s*$)/g) || [];
+      const processedValues = values.map(value => {
+        // Remove quotes and trim
+        return value.replace(/^"|"$/g, '').trim();
+      });
+
+      if (processedValues.length < 6) {
+        console.warn(`Skipping malformed course line: ${lines[i]}`);
+        continue;
+      }
+
+      // Extract section code only, removing any additional text after a dash or newline
+      let section = processedValues[1];
+      if (section) {
+        section = section.split('-')[0].split('\n')[0].trim();
+      }
+      
+      // Standardize DaysTimes format
+      let daysTimes = processedValues[2];
+      if (daysTimes && daysTimes !== "TBA") {
+        daysTimes = daysTimes.replace(/^"|"$/g, '').trim();
+      } else {
+        daysTimes = ""; // Set to empty if TBA or missing
+      }
+
+      const instructorName = processedValues[4] || "";
       const reviewEntry = reviewsMap.get(instructorName);
 
       const course: Course = {
         id: `csv-course-${i}`,
-        Class: values[0]?.trim() || "",
-        Section: values[1]?.trim() || "",
-        DaysTimes: values[2]?.trim() || "",
-        Room: values[3]?.trim() || "",
+        Class: processedValues[0] || "",
+        Section: section || "",
+        DaysTimes: daysTimes,
+        Room: processedValues[3] || "",
         Instructor: instructorName,
-        MeetingDates: values[5]?.trim() || "",
+        MeetingDates: processedValues[5] || "",
         Reviews: reviewEntry ? reviewEntry.Reviews : [],
-        RMP_Rating: reviewEntry ? reviewEntry.RMP_Rating : ""  // new field added
+        RMP_Rating: reviewEntry ? reviewEntry.RMP_Rating : "N/A" // Use N/A if no rating found
       };
 
-      courses.push(course);
+      // Only add courses with valid class codes
+      if (course.Class && course.Class.match(/^[A-Z]{2,4}\s+\d{3}[A-Z]?$/)) { // Allow optional letter suffix
+        courses.push(course);
+      } else {
+        console.warn(`Skipping course with invalid class code or format: ${course.Class} in line: ${lines[i]}`);
+      }
     }
 
-    console.log(`Fetched ${courses.length} courses from CSV`);
-
+    console.log(`Successfully parsed ${courses.length} courses from CSV`);
     return courses;
   } catch (error) {
-    console.error("Error parsing CSV file:", error);
+    console.error("Error parsing courses CSV file:", error);
     return [];
   }
 }
 
-// Mock function to fetch requirements
+// Function to fetch requirements
 export async function fetchRequirements(): Promise<Requirements> {
-  // In a real app, this would be a fetch call to your API
-  return {
-    Unknown: {
-      "Aerospace Engineering, BS": {
-        Freshman: [
-          "ECS 101",
-          "CHE 106",
-          "CHE 107",
-          "WRT 105",
-          "FYS 101",
-          "ECS 104",
-        ],
-        Sophomore: [
-          "MAT 295",
-          "MAT 296",
-          "PHY 211",
-          "PHY 221",
-          "WRT 205",
-          "ECS 221",
-        ],
-        Junior: [
-          "ECS 326",
-          "MAT 397",
-          "ECS 325",
-          "MAE 315",
-          "MAE 341",
-          "MAE 312",
-        ],
-        Senior: [
-          "MAT 485",
-          "AEE 471",
-          "AEE 427",
-          "AEE 446",
-          "AEE 577",
-          "AEE 472",
-        ],
-      },
-      "Biomedical Engineering, BS": {
-        Freshman: [
-          "CHE 106",
-          "CHE 107",
-          "ECS 101",
-          "WRT 105",
-          "FYS 101",
-          "CHE 116",
-        ],
-        Sophomore: [
-          "MAT 295",
-          "MAT 296",
-          "PHY 211",
-          "PHY 221",
-          "BEN 201",
-          "BEN 231",
-        ],
-        Junior: [
-          "MAT 397",
-          "BEN 333",
-          "ECS 326",
-          "BEN 341",
-          "BEN 364",
-          "BEN 375",
-        ],
-        Senior: [
-          "MAT 485",
-          "BEN 568",
-          "BEN 565",
-          "BEN 481",
-          "BEN 485",
-          "BEN 486",
-        ],
-      },
-      "Computer Science, BS": {
-        Freshman: ["ECS 101", "CIS 151", "WRT 105", "FYS 101"],
-        Sophomore: [
-          "CRS 225",
-          "MAT 295",
-          "MAT 296",
-          "CIS 252",
-          "PHI 251",
-          "PHY 211",
-        ],
-        Junior: [
-          "CRS 325",
-          "IST 344",
-          "MAT 397",
-          "MAT 331",
-          "CIS 321",
-          "PHI 378",
-        ],
-        Senior: [
-          "PHI 451",
-          "PHI 551",
-          "PHI 552",
-          "CIS 453",
-          "CIS 477",
-          "CSE 486",
-        ],
-      },
-      "Mechanical Engineering, BS": {
-        Freshman: [
-          "ECS 101",
-          "CHE 106",
-          "CHE 107",
-          "WRT 105",
-          "FYS 101",
-          "ECN 101",
-        ],
-        Sophomore: [
-          "MAT 295",
-          "ECN 203",
-          "MAT 296",
-          "PHY 211",
-          "PHY 221",
-          "WRT 205",
-        ],
-        Junior: [
-          "ECS 326",
-          "MAT 397",
-          "ECS 325",
-          "MAE 315",
-          "MAE 341",
-          "MAE 312",
-        ],
-        Senior: [
-          "MAT 485",
-          "MEE 416",
-          "MEE 431",
-          "MEE 471",
-          "MAE 530",
-          "MAE 571",
-        ],
-      },
-    },
-  };
-}
-
-// Replace the existing fetchCourses function with this updated version
-export async function fetchCourses(): Promise<Course[]> {
   try {
-    // Use the CSV parser to get courses from the CSV file
-    const coursesFromCsv = await parseCsvFile(
-      "/courses.csv",
-      "/courses_with_ratings.csv"
-    );
-
-    console.log(`Fetched ${coursesFromCsv.length} courses from CSV`);
-    if (coursesFromCsv.length > 0) {
-      console.log(`Fetched ${coursesFromCsv.length} courses from CSV`);
-      return coursesFromCsv;
+    console.log("Fetching requirements data...");
+    const response = await fetch("/engineering_majors_requirements.json");
+    if (!response.ok) {
+      throw new Error(`Failed to fetch requirements: ${response.status}`);
     }
-
-    // Fallback to mock data if CSV parsing fails
-    console.warn("Using fallback mock data for courses");
-    return [
-      {
-        id: "course-1",
-        Class: "ECS 101",
-        Section: "M001",
-        DaysTimes: "MoWe 9:30AM - 10:50AM",
-        Room: "Link Hall 105",
-        Instructor: "J. Smith",
-        MeetingDates: "01/13/2025 - 04/28/2025",
-        Reviews: [
-          "Great course, taught by a great professor!",
-          "The professor was very knowledgeable.",
-        ],
-        RMP_Rating: "4.5",
-      },
-      {
-        id: "course-2",
-        Class: "CHE 106",
-        Section: "M002",
-        DaysTimes: "TuTh 11:00AM - 12:20PM",
-        Room: "Science Building 210",
-        Instructor: "A. Johnson",
-        MeetingDates: "01/13/2025 - 04/28/2025",
-        Reviews: [
-          "Great course, taught by a great professor!",
-          "The professor was very knowledgeable.",
-        ],
-        RMP_Rating: "4.0",
-      },
-      {
-        id: "course-3",
-        Class: "MAT 295",
-        Section: "M003",
-        DaysTimes: "MoWeFr 8:00AM - 9:20AM",
-        Room: "Carnegie Hall 100",
-        Instructor: "P. Williams",
-        MeetingDates: "01/13/2025 - 04/28/2025",
-        Reviews: [
-          "Great course, taught by a great professor!",
-          "The professor was very knowledgeable.",
-        ],
-        RMP_Rating: "4.2",
-      },
-      {
-        id: "course-4",
-        Class: "PHY 211",
-        Section: "M001",
-        DaysTimes: "TuTh 2:00PM - 3:20PM",
-        Room: "Physics Building 120",
-        Instructor: "R. Thompson",
-        MeetingDates: "01/13/2025 - 04/28/2025",
-        Reviews: [
-          "Great course, taught by a great professor!",
-          "The professor was very knowledgeable.",
-        ],
-        RMP_Rating: "3.8",
-      },
-      {
-        id: "course-5",
-        Class: "WRT 105",
-        Section: "M004",
-        DaysTimes: "MoWe 1:00PM - 2:20PM",
-        Room: "Hall of Languages 207",
-        Instructor: "M. Davis",
-        MeetingDates: "01/13/2025 - 04/28/2025",
-        Reviews: [
-          "Great course, taught by a great professor!",
-          "The professor was very knowledgeable.",
-        ],
-        RMP_Rating: "4.1",
-      },
-      {
-        id: "course-6",
-        Class: "CIS 151",
-        Section: "M001",
-        DaysTimes: "TuTh 9:30AM - 10:50AM",
-        Room: "Hinds Hall 018",
-        Instructor: "L. Wilson",
-        MeetingDates: "01/13/2025 - 04/28/2025",
-        Reviews: [
-          "Great course, taught by a great professor!",
-          "The professor was very knowledgeable.",
-        ],
-        RMP_Rating: "4.3",
-      },
-      {
-        id: "course-7",
-        Class: "MAE 315",
-        Section: "M002",
-        DaysTimes: "MoWeFr 11:00AM - 12:20PM",
-        Room: "Link Hall 203",
-        Instructor: "K. Brown",
-        MeetingDates: "01/13/2025 - 04/28/2025",
-        Reviews: [
-          "Great course, taught by a great professor!",
-          "The professor was very knowledgeable.",
-        ],
-        RMP_Rating: "4.4",
-      },
-      {
-        id: "course-8",
-        Class: "BEN 201",
-        Section: "M001",
-        DaysTimes: "TuTh 3:30PM - 4:50PM",
-        Room: "Bowne Hall 110",
-        Instructor: "S. Miller",
-        MeetingDates: "01/13/2025 - 04/28/2025",
-        Reviews: [
-          "Great course, taught by a great professor!",
-          "The professor was very knowledgeable.",
-        ],
-        RMP_Rating: "4.6",
-      },
-    ];
+    const data = await response.json();
+    console.log("Requirements data fetched successfully:", Object.keys(data).length, "majors");
+    return data;
   } catch (error) {
-    console.error("Failed to fetch courses:", error);
-    throw error;
+    console.error("Error fetching requirements:", error);
+    return {};
   }
 }
+
+// Fetch courses function
+export async function fetchCourses(): Promise<Course[]> {
+  try {
+    console.log("Fetching course data from CSV...");
+    
+    // Use the CSV parser to fetch courses and merge reviews
+    const courses = await parseCoursesCsv("/courses.csv", "/reviews.csv");
+    
+    if (courses.length === 0) {
+      console.warn("No courses found in CSV file or failed to parse, attempting to use JSON file as fallback");
+      
+      // Fallback to JSON if CSV parsing fails or returns no courses
+      const response = await fetch("/courses.json");
+      if (!response.ok) {
+        throw new Error(`Failed to fetch courses from JSON: ${response.status}`);
+      }
+      const data = await response.json();
+      
+      if (!Array.isArray(data)) {
+        console.error("Fetched courses data is not an array:", data);
+        throw new Error("Invalid course data format: expected an array");
+      }
+      
+      console.log(`Successfully fetched ${data.length} courses from JSON`);
+      
+      // Validate each course has required fields
+      const validCourses = data.filter(course => {
+        if (!course.Class) {
+          console.warn("Course missing Class field:", course);
+          return false;
+        }
+        // Add default empty reviews/rating if missing in JSON
+        if (!course.Reviews) course.Reviews = [];
+        if (!course.RMP_Rating) course.RMP_Rating = "N/A";
+        return true;
+      });
+      
+      if (validCourses.length < data.length) {
+        console.warn(`Filtered out ${data.length - validCourses.length} invalid courses`);
+      }
+      
+      return validCourses;
+    }
+
+    console.log(`Successfully fetched ${courses.length} courses`);
+    return courses;
+    
+  } catch (error) {
+    console.error("Error fetching course data:", error);
+    return []; // Return empty array on error
+  }
+}
+
+// Function to fetch mock courses - kept for testing/backup if needed
+export function fetchMockCourses(): Course[] {
+  console.warn("Using fallback mock data for courses");
+  return [
+    {
+      id: "course-1",
+      Class: "ECS 101",
+      Section: "M001",
+      DaysTimes: "MoWe 9:30AM - 10:50AM",
+      Room: "Link Hall 105",
+      Instructor: "J. Smith",
+      MeetingDates: "01/13/2025 - 04/28/2025",
+      Reviews: [
+        "Great course, taught by a great professor!",
+        "The professor was very knowledgeable.",
+      ],
+      RMP_Rating: "4.5",
+    },
+    {
+      id: "course-2",
+      Class: "CHE 106",
+      Section: "M002",
+      DaysTimes: "TuTh 11:00AM - 12:20PM",
+      Room: "Life Sciences 001",
+      Instructor: "A. Davis",
+      MeetingDates: "01/13/2025 - 04/28/2025",
+      Reviews: [
+        "Challenging but rewarding course.",
+        "Professor Davis explains concepts clearly.",
+      ],
+      RMP_Rating: "4.2",
+    },
+    // Add more mock courses as needed
+  ];
+}
+
+// Example usage (optional, for testing purposes)
+// async function testParsing() {
+//   const courses = await fetchCourses();
+//   console.log("Fetched courses:", courses);
+//   const requirements = await fetchRequirements();
+//   console.log("Fetched requirements:", requirements);
+// }
+// testParsing();

@@ -6,6 +6,7 @@ export interface Course {
   Room?: string
   Instructor?: string
   MeetingDates?: string
+  Reviews?: string[]
   RMP_Rating?: string
 }
 

@@ -342,8 +342,8 @@ function fetchRequirements() {
     })
     .then((data) => {
       console.log("Requirements data fetched")
-      requirements = data.Unknown
-      return data.Unknown
+      requirements = data
+      return data
     })
 }
 
@@ -1280,9 +1280,10 @@ function loadStudentData() {
     selectedMajor = storedMajor
     selectedYear = storedYear
   } else {
-    // Default values if not found
-    selectedMajor = "Computer Science, BS"
-    selectedYear = "Senior"
+    // Get the first available major from requirements
+    const availableMajors = Object.keys(requirements)
+    selectedMajor = availableMajors.length > 0 ? availableMajors[0] : ""
+    selectedYear = "Freshman"
   }
 
   // Update the display with selected major and year

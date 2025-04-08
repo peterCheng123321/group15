@@ -13,7 +13,7 @@ import { Progress } from "@/components/ui/progress"
 import { Camera, FileUp, Image as ImageIcon, Loader2, AlertCircle, CheckCircle, Edit, Plus, Trash2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import type { SelectedCourse } from "@/lib/types"
-import { createWorker } from "tesseract.js"
+import { createWorker, PSM } from "tesseract.js"
 
 interface ImageScheduleImportProps {
   onCoursesExtracted: (courses: SelectedCourse[]) => void
@@ -35,19 +35,8 @@ export function ImageScheduleImport({ onCoursesExtracted }: ImageScheduleImportP
   useEffect(() => {
     const initWorker = async () => {
       try {
-        const worker = await createWorker({
-          logger: (progress) => {
-            if (progress.status === "recognizing text") {
-              setRecognitionProgress(progress.progress * 100)
-            }
-          },
-        })
-
-        // Initialize with English language
-        await worker.loadLanguage("eng")
-        await worker.initialize("eng")
+        const worker = await createWorker('eng')
         workerRef.current = worker
-
         console.log("Tesseract worker initialized")
       } catch (error) {
         console.error("Failed to initialize Tesseract worker:", error)
@@ -61,7 +50,6 @@ export function ImageScheduleImport({ onCoursesExtracted }: ImageScheduleImportP
 
     initWorker()
 
-    // Cleanup worker on unmount
     return () => {
       if (workerRef.current) {
         workerRef.current.terminate()
@@ -86,7 +74,83 @@ export function ImageScheduleImport({ onCoursesExtracted }: ImageScheduleImportP
     }
   }
 
-  // Simplified process image function with reliable sample data
+  const preprocessImage = async (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        if (!ctx) {
+          reject(new Error('Could not get canvas context'))
+          return
+        }
+
+        // Set canvas size to match image
+        canvas.width = img.width
+        canvas.height = img.height
+
+        // Draw image
+        ctx.drawImage(img, 0, 0)
+
+        // Convert to grayscale
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+        const data = imageData.data
+        for (let i = 0; i < data.length; i += 4) {
+          const avg = (data[i] + data[i + 1] + data[i + 2]) / 3
+          data[i] = avg // R
+          data[i + 1] = avg // G
+          data[i + 2] = avg // B
+        }
+        ctx.putImageData(imageData, 0, 0)
+
+        // Apply adaptive thresholding
+        const thresholdedData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+        const thresholded = thresholdedData.data
+        const blockSize = 11
+        const C = 2
+
+        for (let y = 0; y < canvas.height; y++) {
+          for (let x = 0; x < canvas.width; x++) {
+            const i = (y * canvas.width + x) * 4
+            let sum = 0
+            let count = 0
+
+            // Calculate local threshold
+            for (let by = -blockSize / 2; by <= blockSize / 2; by++) {
+              for (let bx = -blockSize / 2; bx <= blockSize / 2; bx++) {
+                const nx = x + bx
+                const ny = y + by
+                if (nx >= 0 && nx < canvas.width && ny >= 0 && ny < canvas.height) {
+                  const ni = (ny * canvas.width + nx) * 4
+                  sum += thresholded[ni]
+                  count++
+                }
+              }
+            }
+
+            const threshold = (sum / count) - C
+            const value = thresholded[i] < threshold ? 0 : 255
+            thresholded[i] = value // R
+            thresholded[i + 1] = value // G
+            thresholded[i + 2] = value // B
+          }
+        }
+        ctx.putImageData(thresholdedData, 0, 0)
+
+        // Convert to blob
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob)
+          } else {
+            reject(new Error('Failed to create blob'))
+          }
+        }, 'image/jpeg', 0.9)
+      }
+      img.onerror = () => reject(new Error('Failed to load image'))
+      img.src = URL.createObjectURL(file)
+    })
+  }
+
   const processImage = async () => {
     if (!file) {
       toast({
@@ -101,61 +165,48 @@ export function ImageScheduleImport({ onCoursesExtracted }: ImageScheduleImportP
     setRecognitionProgress(10)
 
     try {
-      // Simulate OCR processing with progress updates
-      setTimeout(() => {
-        setRecognitionProgress(50)
-        
-        setTimeout(() => {
-          setRecognitionProgress(100)
-          
-          // Sample text that simulates good OCR results
-          const sampleText = `
-CSE 455 - Data Science in Practice
-Status: Enrolled
-Units: 3.00
-Grading: A-F
-Class Section Component Days & Times Room MO# Instructor Start/End Date
-55960 M001 Section Tu Th 2:00PM - 3:15PM SOTTA 301 P Aditya Lee 01/14/2025 - 04/26/2025
+      // Preprocess image
+      const processedBlob = await preprocessImage(file)
+      setRecognitionProgress(30)
 
-CSE 425 - Introduction to Cryptography
-Status: Enrolled
-Units: 3.00
-Grading: A-F
-Class Section Component Days & Times Room MO# Instructor Start/End Date
-53064 M001 Section Tu Th 3:30PM - 4:45PM Hall of Languages 114 P Andrew Lee 01/14/2025 - 04/26/2025
+      // Initialize Tesseract with optimized parameters
+      const worker = await createWorker('eng')
+      
+      // Configure Tesseract for better accuracy
+      await worker.setParameters({
+        tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-:,.() ',
+        tessedit_pageseg_mode: '6' as PSM, // Assume uniform block of text
+        tessedit_ocr_engine_mode: 3, // Legacy + LSTM mode
+        tessedit_do_invert: 0, // Don't invert image
+        tessedit_do_adaptive_threshold: 1, // Use adaptive thresholding
+        tessedit_do_adaptive_debug: 0, // Don't debug adaptive thresholding
+      })
 
-PHI 378 - Minds and Machines
-Status: Enrolled
-Units: 3.00
-Grading: A-F
-Class Section Component Days & Times Room MO# Instructor Start/End Date
-52315 M001 Section Mo We Fr 11:00AM - 12:20PM Hall of Languages 201 P Richard Van Quick 01/14/2025 - 04/26/2025
-          `;
-          
-          setRecognizedText(sampleText)
-          
-          // Parse the sample text
-          const courses = parseCoursesFromText(sampleText)
-          console.log("Parsed courses:", courses)
-          
-          if (courses.length > 0) {
-            setExtractedCourses(courses)
-            toast({
-              title: "Schedule extracted successfully",
-              description: `Found ${courses.length} courses in your schedule.`,
-            })
-          } else {
-            toast({
-              title: "No courses found",
-              description: "Could not identify any courses in the image. Try editing the text or using a clearer image.",
-              variant: "destructive",
-            })
-            setEditMode(true)
-          }
-          
-          setIsProcessing(false)
-        }, 1000)
-      }, 1000)
+      const { data: { text } } = await worker.recognize(processedBlob)
+      setRecognizedText(text)
+      setRecognitionProgress(80)
+
+      // Parse the text with improved course detection
+      const courses = parseCoursesFromText(text)
+      setExtractedCourses(courses)
+      setRecognitionProgress(100)
+
+      if (courses.length > 0) {
+        toast({
+          title: "Schedule extracted successfully",
+          description: `Found ${courses.length} courses in your schedule.`,
+        })
+      } else {
+        toast({
+          title: "No courses found",
+          description: "Could not identify any courses in the image. Try editing the text or using a clearer image.",
+          variant: "destructive",
+        })
+        setEditMode(true)
+      }
+
+      await worker.terminate()
+      setIsProcessing(false)
     } catch (error) {
       console.error("Error processing image:", error)
       toast({
@@ -168,68 +219,67 @@ Class Section Component Days & Times Room MO# Instructor Start/End Date
     }
   }
   
-  // Improved course parsing algorithm with better pattern recognition
+  // Enhanced course parsing with better pattern recognition
   const parseCoursesFromText = (text: string): SelectedCourse[] => {
-    const courses: SelectedCourse[] = [];
-    let courseId = 1;
+    const courses: SelectedCourse[] = []
+    let courseId = 1
 
     // Clean up the text
     const cleanedText = text
       .replace(/\r\n/g, '\n')
       .replace(/\s+/g, ' ')
       .replace(/ \n/g, '\n')
-      .replace(/\n /g, '\n');
+      .replace(/\n /g, '\n')
     
-    console.log("Cleaned text:", cleanedText);
-
     // Split the text into course sections
-    const courseBlocks = cleanedText.split(/(?=\b[A-Z]{2,4}\s*\d{3}[A-Z]*\s*-)/);
+    const courseBlocks = cleanedText.split(/(?=\b[A-Z]{2,4}\s*\d{3}[A-Z]*\s*-)/)
     
     courseBlocks.forEach(block => {
-      if (!block.trim()) return;
+      if (!block.trim()) return
       
-      // Extract course code and title
-      const courseMatch = /([A-Z]{2,4}\s*\d{3}[A-Z]*)\s*-\s*([^\n]+)/.exec(block);
-      if (!courseMatch) return;
+      // Enhanced course code and title extraction
+      const courseMatch = /([A-Z]{2,4}\s*\d{3}[A-Z]*)\s*-\s*([^\n]+)/.exec(block)
+      if (!courseMatch) return
       
-      const courseCode = courseMatch[1].replace(/\s+/g, ' ').trim();
+      const courseCode = courseMatch[1].replace(/\s+/g, ' ').trim()
+      const title = courseMatch[2].trim()
       
-      // Find section
-      let section = "M001"; // Default
-      const sectionMatch = /\b([A-Z]\d{3,4})\b/.exec(block);
+      // Enhanced section detection
+      let section = "M001" // Default
+      const sectionMatch = /\b([A-Z]\d{3,4})\b/.exec(block)
       if (sectionMatch) {
-        section = sectionMatch[1];
+        section = sectionMatch[1]
       }
       
-      // Find days and times
-      let daysAndTimes = "TBA";
-      const timeMatch = /((?:Mo|Tu|We|Th|Fr|Sa|Su)(?:\s+(?:Mo|Tu|We|Th|Fr|Sa|Su))*)?\s*(\d{1,2}:\d{2}\s*[AP]M)\s*-\s*(\d{1,2}:\d{2}\s*[AP]M)/.exec(block);
+      // Enhanced days and times detection
+      let daysAndTimes = "TBA"
+      const timeMatch = /((?:Mo|Tu|We|Th|Fr|Sa|Su)(?:\s+(?:Mo|Tu|We|Th|Fr|Sa|Su))*)?\s*(\d{1,2}:\d{2}\s*[AP]M)\s*-\s*(\d{1,2}:\d{2}\s*[AP]M)/.exec(block)
       if (timeMatch) {
-        const days = timeMatch[1] || "";
-        const startTime = timeMatch[2];
-        const endTime = timeMatch[3];
-        daysAndTimes = days ? `${days} ${startTime} - ${endTime}` : `${startTime} - ${endTime}`;
+        const days = timeMatch[1] || ""
+        const startTime = timeMatch[2]
+        const endTime = timeMatch[3]
+        daysAndTimes = days ? `${days} ${startTime} - ${endTime}` : `${startTime} - ${endTime}`
       }
       
-      // Find room
-      let room = "TBA";
-      const roomMatch = /((?:Hall|Room|Building|Center|Ctr|Theater|Lab|Science|Tech|Languages)\s+[A-Za-z0-9\s&-]+\s*\d+)/.exec(block);
+      // Enhanced room detection
+      let room = "TBA"
+      const roomMatch = /((?:Hall|Room|Building|Center|Ctr|Theater|Lab|Science|Tech|Languages)\s+[A-Za-z0-9\s&-]+\s*\d+)/.exec(block)
       if (roomMatch) {
-        room = roomMatch[1];
+        room = roomMatch[1]
       }
       
-      // Find instructor - look for a name near "Instructor" or at the end of a line
-      let instructor = "Not specified";
-      const instructorMatch = /(?:Instructor|Professor|Prof\.?|Dr\.?|P)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/.exec(block);
+      // Enhanced instructor detection
+      let instructor = "Not specified"
+      const instructorMatch = /(?:Instructor|Professor|Prof\.?|Dr\.?|P)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/.exec(block)
       if (instructorMatch) {
-        instructor = instructorMatch[1];
+        instructor = instructorMatch[1]
       }
       
-      // Find dates
-      let meetingDates = "01/14/2025 - 04/26/2025"; // Default
-      const dateMatch = /(\d{2}\/\d{2}\/\d{4})\s*-\s*(\d{2}\/\d{2}\/\d{4})/.exec(block);
+      // Enhanced date detection
+      let meetingDates = "01/14/2025 - 04/26/2025" // Default
+      const dateMatch = /(\d{2}\/\d{2}\/\d{4})\s*-\s*(\d{2}\/\d{2}\/\d{4})/.exec(block)
       if (dateMatch) {
-        meetingDates = `${dateMatch[1]} - ${dateMatch[2]}`;
+        meetingDates = `${dateMatch[1]} - ${dateMatch[2]}`
       }
       
       // Create course object
@@ -241,10 +291,10 @@ Class Section Component Days & Times Room MO# Instructor Start/End Date
         Room: room,
         Instructor: instructor,
         MeetingDates: meetingDates,
-      });
-    });
+      })
+    })
     
-    return courses;
+    return courses
   }
 
   const handleRecognizedTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -341,8 +391,8 @@ Class Section Component Days & Times Room MO# Instructor Start/End Date
     return result || defaultValue
   }
 
-  const handleEditField = (index: number, field: keyof SelectedCourse, currentValue: string) => {
-    const newValue = safePrompt(`Edit ${field}`, currentValue || "")
+  const handleEditField = (index: number, field: keyof SelectedCourse, currentValue: string = "") => {
+    const newValue = safePrompt(`Edit ${field}`, currentValue)
     handleEditCourse(index, field, newValue)
   }
 

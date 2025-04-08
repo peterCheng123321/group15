@@ -650,9 +650,10 @@ function loadStudentData() {
     selectedMajor = storedMajor
     selectedYear = storedYear
   } else {
-    // Default values if not found
-    selectedMajor = "Computer Science, BS"
-    selectedYear = "Senior"
+    // Get the first available major from requirements
+    const availableMajors = Object.keys(majorRequirements)
+    selectedMajor = availableMajors.length > 0 ? availableMajors[0] : ""
+    selectedYear = "Freshman"
   }
 
   // Update the display with selected major and year
