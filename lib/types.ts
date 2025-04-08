@@ -6,6 +6,7 @@ export interface Course {
   Room?: string
   Instructor?: string
   MeetingDates?: string
+  RMP_Rating?: string
 }
 
 export interface SelectedCourse extends Course {

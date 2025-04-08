@@ -212,7 +212,10 @@ export function SearchPopup({ onClose, onSearch, searchResults, onAddCourse }: S
                           </TooltipTrigger>
                           <TooltipContent className="max-w-[300px]">
                             <div className="space-y-2">
-                              <h4 className="font-semibold">{course.Instructor}</h4>
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-semibold">{course.Instructor}</h4>
+                                <p className="text-sm">Rating: {course.RMP_Rating || "N/A"}/5</p>
+                              </div>
                               {course.Reviews?.length ? (
                                 <ul className="list-disc pl-4 space-y-1">
                                   {course.Reviews.map((review, i) => (

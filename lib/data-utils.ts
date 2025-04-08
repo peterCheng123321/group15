@@ -170,10 +170,10 @@
 
 import type { Course, Requirements } from "./types";
 
-// Function to parse the reviews CSV file
+// Update the parseReviewsCsv function to include RMP_Rating
 async function parseReviewsCsv(
   filePath: string
-): Promise<Map<string, string[]>> {
+): Promise<Map<string, { RMP_Rating: string; Reviews: string[] }>> {
   try {
     const response = await fetch(filePath);
     if (!response.ok) {
@@ -182,7 +182,7 @@ async function parseReviewsCsv(
 
     const csvText = await response.text();
     const lines = csvText.split("\n");
-    const reviewsMap = new Map<string, string[]>();
+    const reviewsMap = new Map<string, { RMP_Rating: string; Reviews: string[] }>();
 
     for (let i = 1; i < lines.length; i++) {
       if (!lines[i].trim()) continue; // Skip empty lines
@@ -192,14 +192,15 @@ async function parseReviewsCsv(
       // console.log(values);
 
       const professorName = values[0]?.trim() || "";
+      const rating = values[1]?.trim() || "";
       const reviews = [
         values[2]?.trim() || "", // RMP_Review1
         values[3]?.trim() || "", // RMP_Review2
         values[4]?.trim() || "", // RMP_Review3
       ];
-      reviewsMap.set(professorName, reviews);
+      reviewsMap.set(professorName, { RMP_Rating: rating, Reviews: reviews });
     }
-    // console.log(reviewsMap);
+// console.log(reviewsMap);
     return reviewsMap;
   } catch (error) {
     console.error("Error parsing reviews CSV file:", error);
@@ -207,7 +208,7 @@ async function parseReviewsCsv(
   }
 }
 
-// Function to parse courses CSV and merge reviews
+// Update the parseCsvFile to merge the rating to the course object
 export async function parseCsvFile(
   filePath: string,
   reviewsFilePath: string
@@ -234,10 +235,9 @@ export async function parseCsvFile(
       if (!lines[i].trim()) continue; // Skip empty lines
 
       const values = lines[i].split(",");
-      // if (values.length < headers.length) continue; // Skip malformed lines
-
-      console.log(lines[i]);
-      console.log(reviewsMap.get(lines[i]));
+      // Use the instructor from the course CSV to look up reviews and rating
+      const instructorName = values[4]?.trim() || "";
+      const reviewEntry = reviewsMap.get(instructorName);
 
       const course: Course = {
         id: `csv-course-${i}`,
@@ -245,9 +245,10 @@ export async function parseCsvFile(
         Section: values[1]?.trim() || "",
         DaysTimes: values[2]?.trim() || "",
         Room: values[3]?.trim() || "",
-        Instructor: values[4]?.trim() || "",
+        Instructor: instructorName,
         MeetingDates: values[5]?.trim() || "",
-        Reviews: reviewsMap.get(values[4]?.trim() || "") || [],
+        Reviews: reviewEntry ? reviewEntry.Reviews : [],
+        RMP_Rating: reviewEntry ? reviewEntry.RMP_Rating : ""  // new field added
       };
 
       courses.push(course);
@@ -430,6 +431,7 @@ export async function fetchCourses(): Promise<Course[]> {
           "Great course, taught by a great professor!",
           "The professor was very knowledgeable.",
         ],
+        RMP_Rating: "4.5",
       },
       {
         id: "course-2",
@@ -443,6 +445,7 @@ export async function fetchCourses(): Promise<Course[]> {
           "Great course, taught by a great professor!",
           "The professor was very knowledgeable.",
         ],
+        RMP_Rating: "4.0",
       },
       {
         id: "course-3",
@@ -456,6 +459,7 @@ export async function fetchCourses(): Promise<Course[]> {
           "Great course, taught by a great professor!",
           "The professor was very knowledgeable.",
         ],
+        RMP_Rating: "4.2",
       },
       {
         id: "course-4",
@@ -469,6 +473,7 @@ export async function fetchCourses(): Promise<Course[]> {
           "Great course, taught by a great professor!",
           "The professor was very knowledgeable.",
         ],
+        RMP_Rating: "3.8",
       },
       {
         id: "course-5",
@@ -482,6 +487,7 @@ export async function fetchCourses(): Promise<Course[]> {
           "Great course, taught by a great professor!",
           "The professor was very knowledgeable.",
         ],
+        RMP_Rating: "4.1",
       },
       {
         id: "course-6",
@@ -495,6 +501,7 @@ export async function fetchCourses(): Promise<Course[]> {
           "Great course, taught by a great professor!",
           "The professor was very knowledgeable.",
         ],
+        RMP_Rating: "4.3",
       },
       {
         id: "course-7",
@@ -508,6 +515,7 @@ export async function fetchCourses(): Promise<Course[]> {
           "Great course, taught by a great professor!",
           "The professor was very knowledgeable.",
         ],
+        RMP_Rating: "4.4",
       },
       {
         id: "course-8",
@@ -521,6 +529,7 @@ export async function fetchCourses(): Promise<Course[]> {
           "Great course, taught by a great professor!",
           "The professor was very knowledgeable.",
         ],
+        RMP_Rating: "4.6",
       },
     ];
   } catch (error) {
