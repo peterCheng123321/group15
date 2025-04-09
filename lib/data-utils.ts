@@ -18,28 +18,16 @@ async function parseReviewsCsv(
     for (let i = 1; i < lines.length; i++) {
       if (!lines[i].trim()) continue;
 
-      // Handle quoted fields and escaped commas - Improved parsing
-      const values = lines[i].match(/(".*?"|[^,\\s]+)(?=\\s*,|\\s*$)/g) || [];
-      const processedValues = values.map(value => {
-        // Remove quotes and trim
-        return value.replace(/^"|"$/g, '').trim();
-      });
-
-      if (processedValues.length < 5) {
-        console.warn(`Skipping malformed review line: ${lines[i]}`);
-        continue;
-      }
-
-      const professorName = processedValues[0];
-      const rating = processedValues[1];
+      const values = lines[i].split(",");
+      const professorName = values[0]?.trim() || "";
+      const rating = values[1]?.trim() || "N/A";
       const reviews = [
-        processedValues[2], // RMP_Review1
-        processedValues[3], // RMP_Review2
-        processedValues[4], // RMP_Review3
-      ].filter(review => review); // Remove empty reviews
-
+        values[2]?.trim() || "",
+        values[3]?.trim() || "",
+        values[4]?.trim() || ""
+      ].filter(review => review);
       if (professorName) {
-        reviewsMap.set(professorName, { RMP_Rating: rating || "N/A", Reviews: reviews });
+        reviewsMap.set(professorName, { RMP_Rating: rating, Reviews: reviews });
       }
     }
 
@@ -76,49 +64,26 @@ async function parseCoursesCsv(coursesFilePath: string, reviewsFilePath: string)
     for (let i = 1; i < lines.length; i++) {
       if (!lines[i].trim()) continue;
 
-      // Handle quoted fields and escaped commas - Improved parsing
-      const values = lines[i].match(/(".*?"|[^,\\s]+)(?=\\s*,|\\s*$)/g) || [];
-      const processedValues = values.map(value => {
-        // Remove quotes and trim
-        return value.replace(/^"|"$/g, '').trim();
-      });
-
-      if (processedValues.length < 6) {
+      const values = lines[i].split(",");
+      if (values.length < 6) {
         console.warn(`Skipping malformed course line: ${lines[i]}`);
         continue;
       }
-
-      // Extract section code only, removing any additional text after a dash or newline
-      let section = processedValues[1];
-      if (section) {
-        section = section.split('-')[0].split('\n')[0].trim();
-      }
-      
-      // Standardize DaysTimes format
-      let daysTimes = processedValues[2];
-      if (daysTimes && daysTimes !== "TBA") {
-        daysTimes = daysTimes.replace(/^"|"$/g, '').trim();
-      } else {
-        daysTimes = ""; // Set to empty if TBA or missing
-      }
-
-      const instructorName = processedValues[4] || "";
+      const instructorName = values[4]?.trim() || "";
       const reviewEntry = reviewsMap.get(instructorName);
-
       const course: Course = {
         id: `csv-course-${i}`,
-        Class: processedValues[0] || "",
-        Section: section || "",
-        DaysTimes: daysTimes,
-        Room: processedValues[3] || "",
+        Class: values[0]?.trim() || "",
+        Section: values[1]?.trim() || "",
+        DaysTimes: values[2]?.trim() || "",
+        Room: values[3]?.trim() || "",
         Instructor: instructorName,
-        MeetingDates: processedValues[5] || "",
+        MeetingDates: values[5]?.trim() || "",
         Reviews: reviewEntry ? reviewEntry.Reviews : [],
-        RMP_Rating: reviewEntry ? reviewEntry.RMP_Rating : "N/A" // Use N/A if no rating found
+        RMP_Rating: reviewEntry ? reviewEntry.RMP_Rating : "N/A"
       };
 
-      // Only add courses with valid class codes
-      if (course.Class && course.Class.match(/^[A-Z]{2,4}\s+\d{3}[A-Z]?$/)) { // Allow optional letter suffix
+      if (course.Class && course.Class.match(/^[A-Z]{2,4}\s+\d{3}[A-Z]?$/)) {
         courses.push(course);
       } else {
         console.warn(`Skipping course with invalid class code or format: ${course.Class} in line: ${lines[i]}`);
