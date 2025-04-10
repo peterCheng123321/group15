@@ -3,7 +3,7 @@ import CourseCard from '@/components/CourseCard';
 import type { SelectedCourse } from '@/lib/types';
 import { DragDropContext, Droppable, Draggable, DroppableProvided, DraggableProvided, DroppableStateSnapshot, DraggableStateSnapshot, DropResult } from '@hello-pangea/dnd';
 import * as Dialog from '@radix-ui/react-dialog';
-import { X } from 'lucide-react';
+import { X, Download } from 'lucide-react';
 
 interface CalendarViewProps {
   courses: SelectedCourse[];
@@ -120,9 +120,95 @@ export function CalendarView({
     onCourseDrop(courseId, newDay, timeSlot);
   };
 
+  const exportCalendar = () => {
+    // Create iCal format string
+    let icalContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Course Scheduler//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH'
+    ];
+
+    // Add each course as an event
+    courses.forEach(course => {
+      if (!course.DaysTimes) return;
+
+      const timeMatch = course.DaysTimes.match(/(\d{1,2}:\d{2}[AP]M)\s*-\s*(\d{1,2}:\d{2}[AP]M)/i);
+      if (!timeMatch) return;
+
+      const startTime = timeMatch[1];
+      const endTime = timeMatch[2];
+      const days = course.DaysTimes.match(/[MTWFS][ouehra]/g) || [];
+
+      // Convert time to 24-hour format
+      const parseTime = (timeStr: string) => {
+        const [hours, minutes] = timeStr.split(':');
+        const ampm = timeStr.slice(-2).toUpperCase();
+        let hour = parseInt(hours);
+        if (ampm === 'PM' && hour !== 12) hour += 12;
+        if (ampm === 'AM' && hour === 12) hour = 0;
+        return `${hour.toString().padStart(2, '0')}${minutes.slice(0, 2)}`;
+      };
+
+      const startTime24 = parseTime(startTime);
+      const endTime24 = parseTime(endTime);
+
+      // Create an event for each day
+      days.forEach(day => {
+        const dayMap: Record<string, number> = {
+          'Mo': 1, 'Tu': 2, 'We': 3, 'Th': 4, 'Fr': 5
+        };
+        const dayNum = dayMap[day];
+        if (!dayNum) return;
+
+        // Create a date for the current semester (assuming Fall 2024)
+        const startDate = new Date(2024, 8, 2); // September 2, 2024
+        const eventDate = new Date(startDate);
+        eventDate.setDate(startDate.getDate() + (dayNum - 1));
+
+        const formatDate = (date: Date, time: string) => {
+          return `${date.getFullYear()}${(date.getMonth() + 1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}T${time}00`;
+        };
+
+        icalContent.push(
+          'BEGIN:VEVENT',
+          `DTSTART:${formatDate(eventDate, startTime24)}`,
+          `DTEND:${formatDate(eventDate, endTime24)}`,
+          `SUMMARY:${course.Class || 'Unknown Course'} - ${course.Section || 'Unknown Section'}`,
+          `LOCATION:${course.Room || 'TBD'}`,
+          `DESCRIPTION:Instructor: ${course.Instructor || 'TBD'}\\nNotes: ${courseNotes[course.id] || 'No notes'}`,
+          'END:VEVENT'
+        );
+      });
+    });
+
+    icalContent.push('END:VCALENDAR');
+
+    // Create and download the file
+    const blob = new Blob([icalContent.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'course_schedule.ics');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const renderCalendar = () => {
     return (
       <>
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={exportCalendar}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Download size={16} />
+            Export Calendar
+          </button>
+        </div>
         <DragDropContext onDragEnd={handleDragEnd}>
           <div className="border rounded-xl overflow-hidden shadow-lg bg-white dark:bg-gray-900">
             <div className="flex">
