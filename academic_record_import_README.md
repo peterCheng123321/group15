@@ -34,204 +34,164 @@ You can install the required Python packages with:
 pip install selenium beautifulsoup4 webdriver-manager
 ```
 
-## Setup
+## Setup and Running
 
-1. Clone this repository
-2. Install the required Node.js dependencies:
+### Method 1: Run with the Web Application
 
-```bash
-npm install
-```
-
-3. Start the backend API server:
+1. Start the development server with the API:
 
 ```bash
-node academic_scraper_api.js
+npm run dev
 ```
 
-4. Make sure the environment variable for the API URL is set in your Next.js project:
+2. Navigate to the Academic Progress page at http://localhost:3000/academic-progress
+3. Click on "Import from MySlice" button
+4. Follow the on-screen instructions to log in and complete the import
 
-```
-NEXT_PUBLIC_API_URL=http://localhost:3001
-```
+### Method 2: Run the Scraper Directly
 
-## Integration
+1. Use the provided standalone script:
 
-To add the Academic Record Importer to your application, import the component:
-
-```jsx
-import AcademicRecordImporter from '../components/AcademicRecordImporter';
-
-// In your component:
-const handleImportComplete = (courses) => {
-  // Do something with the imported courses
-  console.log('Imported courses:', courses);
-};
-
-// In your render method:
-<AcademicRecordImporter onImportComplete={handleImportComplete} />
+```bash
+node backend/run_scraper.js
 ```
 
-## Integrating with Performance Prediction Model
+2. Follow the prompts in the terminal to log in to MySlice
+3. Wait for the scraper to complete
 
-The imported academic record can be used with the performance prediction model to provide personalized course recommendations. Here's how to integrate them:
+### Method 3: Run just the API Server
 
-```jsx
-import { useState } from 'react';
-import AcademicRecordImporter from '../components/AcademicRecordImporter';
-import { predictStudentPerformance, getRecommendation } from '../lib/performancePredictor';
+1. Start the API server separately:
 
-export default function AcademicProgressPage() {
-  const [importedCourses, setImportedCourses] = useState([]);
-  const [predictedPerformance, setPredictedPerformance] = useState([]);
-  
-  // Handle the imported courses
-  const handleImportComplete = async (courses) => {
-    setImportedCourses(courses);
-    
-    // Calculate GPA from imported courses
-    const totalPoints = courses.reduce((total, course) => {
-      const gradeMap = {
-        'A+': 4.0, 'A': 4.0, 'A-': 3.7,
-        'B+': 3.3, 'B': 3.0, 'B-': 2.7,
-        'C+': 2.3, 'C': 2.0, 'C-': 1.7,
-        'D+': 1.3, 'D': 1.0, 'D-': 0.7,
-        'F': 0.0
-      };
-      
-      const credits = parseFloat(course.credits) || 0;
-      const gradeValue = gradeMap[course.grade] || 0;
-      return total + (gradeValue * credits);
-    }, 0);
-    
-    const totalCredits = courses.reduce((total, course) => {
-      return total + (parseFloat(course.credits) || 0);
-    }, 0);
-    
-    const gpa = totalCredits > 0 ? totalPoints / totalCredits : 0;
-    
-    // Prepare student data for prediction
-    const studentData = {
-      gpa,
-      completedCourses: courses.map(course => ({
-        code: course.code,
-        grade: course.grade,
-        department: course.code.split(' ')[0],
-        credits: parseFloat(course.credits) || 3
-      })),
-      currentWorkload: 0, // Set to 0 for planning purposes
-      historicalPerformance: courses.map(course => ({
-        code: course.code,
-        grade: course.grade,
-        department: course.code.split(' ')[0]
-      }))
-    };
-    
-    // Courses to predict performance for
-    const coursesToPredict = [
-      // Example courses - these would come from your course catalog
-      {
-        code: "CSE 101",
-        department: "CSE",
-        credits: 3,
-        difficulty: 0.6,
-        prerequisites: []
-      },
-      {
-        code: "MAT 295",
-        department: "MAT",
-        credits: 4,
-        difficulty: 0.7,
-        prerequisites: []
-      }
-    ];
-    
-    // Predict performance
-    const predictions = await predictStudentPerformance(studentData, coursesToPredict);
-    setPredictedPerformance(predictions);
-  };
-  
-  return (
-    <div>
-      <h1>Academic Progress</h1>
-      
-      <AcademicRecordImporter onImportComplete={handleImportComplete} />
-      
-      {predictedPerformance.length > 0 && (
-        <div>
-          <h2>Predicted Performance</h2>
-          <ul>
-            {predictedPerformance.map((prediction, index) => (
-              <li key={index}>
-                <strong>{prediction.courseCode}</strong>: 
-                Predicted Grade: {prediction.predictedGrade} ({prediction.predictedGPA})
-                <br />
-                <span>Confidence: {prediction.confidence}</span>
-                <br />
-                <span>{getRecommendation(prediction.predictedGPA)}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-}
+```bash
+node backend/src/api/academic_scraper_api.js
 ```
 
-This integration will:
-1. Import the student's courses from MySlice
-2. Calculate their GPA from the imported courses
-3. Format the data for the prediction model
-4. Generate personalized performance predictions
-5. Display the predicted grades and recommendations
+2. Use the API endpoints:
+   - POST to `/api/scrape-academic-record` to start a scraping job
+   - GET to `/api/scrape-status/:jobId` to check job status
+   - GET to `/api/academic-record` to retrieve scraped courses
 
-## How It Works
+## How the Scraper Works
 
-1. **Backend API**: The `academic_scraper_api.js` provides endpoints for:
-   - Starting a scraping job
-   - Checking job status
-   - Getting the scraped academic record
+The scraper works through the following steps:
 
-2. **Python Scraper**: The `ScrapeCourses.py` script:
-   - Uses Selenium to automate browser interaction
-   - Handles login to MySlice
-   - Navigates to the Academic Progress page
-   - Extracts course information
-   - Saves results to a JSON file
-
-3. **Frontend Component**: The `AcademicRecordImporter.jsx` component:
-   - Provides a user interface for initiating the import
-   - Shows import progress
-   - Displays the imported courses
-   - Allows the user to use the data for recommendations
-
-4. **Performance Prediction**: The `performancePredictor.js` module:
-   - Loads a pre-trained TensorFlow.js model
-   - Takes the student's academic history
-   - Predicts performance in future courses
-   - Provides confidence levels and personalized recommendations
-
-## Security
-
-This application uses the following security measures:
-
-- Credentials are never stored in the application code
-- Users log in directly to the MySlice portal
-- Cookies are saved locally and not transmitted to any third parties
-- The API server runs locally on your machine
+1. **Launches Chrome**: Opens a Chrome browser window using Selenium WebDriver
+2. **Login Assistance**: Navigates to MySlice login and assists you with the login process
+3. **Navigation**: Automatically navigates to the Academic Record section
+4. **Extraction**: Extracts course information including codes, names, grades, and credits
+5. **Data Storage**: Saves the extracted data to a JSON file for use in the application
 
 ## Troubleshooting
 
-If you encounter issues:
+If you encounter issues with the scraper, try these troubleshooting steps:
 
-1. **Login problems**: Make sure you can log in to MySlice in your browser
-2. **Scraping fails**: Check the MySlice screenshot saved in the root directory for debugging
-3. **No courses found**: Try running the script manually to debug:
+### Common Issues
 
-```bash
-python ScrapeCourses.py
+1. **Browser Closes Too Quickly**: The scraper is designed to keep the browser open until the scraping is complete. If it closes unexpectedly, check the error logs.
+
+2. **Navigation Problems**: MySlice's UI can change. The scraper takes screenshots during navigation to help diagnose issues:
+   - Check the generated screenshots in the project folder
+
+3. **Installation Issues**: Make sure you have Chrome installed and the correct Python packages:
+   
+   ```bash
+   pip install --upgrade selenium beautifulsoup4 webdriver-manager
+   ```
+
+4. **Manual Login Needed**: The scraper requires you to manually log in to MySlice for security. Be ready to enter your credentials and complete 2FA if needed.
+
+### Viewing Screenshots and Logs
+
+The scraper saves diagnostic screenshots to help troubleshoot navigation issues:
+
+- `login_check.png`: Status after attempting to log in
+- `academics_click_error.png`: If there was an issue clicking the Academics menu
+- `after_academics_click.png`: After clicking the Academics menu
+- `course_history_click_error.png`: If there was an issue navigating to Course History
+- `course_history_ready.png`: Course History page before scraping
+- `expanded_academic_record.png`: After expanding all sections
+
+Check these screenshots if the scraper gets stuck at a particular step.
+
+## API Documentation
+
+The scraper provides the following API endpoints:
+
+### Start Scraping
+
 ```
+POST /api/scrape-academic-record
+```
+
+This endpoint initiates a new scraping job. It returns a job ID that can be used to check status.
+
+Response:
+```json
+{
+  "jobId": "1681234567890",
+  "status": "running",
+  "message": "Academic record scraper started"
+}
+```
+
+### Check Status
+
+```
+GET /api/scrape-status/:jobId
+```
+
+This endpoint checks the status of a scraping job.
+
+Response:
+```json
+{
+  "status": "completed",
+  "message": "Successfully scraped 32 courses",
+  "started": "2023-04-11T14:30:00.000Z",
+  "completed": "2023-04-11T14:32:00.000Z",
+  "log": "...",
+  "result": [
+    {
+      "code": "CIS 151",
+      "name": "Introduction to Computer Science",
+      "grade": "A",
+      "credits": "3",
+      "term": "Fall 2022"
+    },
+    // More courses...
+  ]
+}
+```
+
+### Get Academic Record
+
+```
+GET /api/academic-record
+```
+
+This endpoint retrieves the most recently scraped academic record.
+
+Response:
+```json
+[
+  {
+    "code": "CIS 151",
+    "name": "Introduction to Computer Science",
+    "grade": "A",
+    "credits": "3",
+    "term": "Fall 2022"
+  },
+  // More courses...
+]
+```
+
+## Security Considerations
+
+- **No Credential Storage**: The scraper does not store your MySlice credentials.
+- **Manual Login**: You will always need to manually enter your credentials.
+- **Local Processing**: All data processing happens locally on your machine.
+- **Cookie Management**: Session cookies are stored temporarily to facilitate navigation but are not shared.
 
 ## Contributing
 

@@ -32,3 +32,17 @@ export interface Requirements {
     }
   }
 }
+
+export interface CourseData {
+  code: string;
+  name: string;
+  term: string;
+  credits: string;
+  grade?: string;
+  requirementGroup?: string;
+  course?: string;
+  title?: string;
+  catalogGroup?: string;
+  isRecommended?: boolean;
+  isFuture?: boolean;
+}

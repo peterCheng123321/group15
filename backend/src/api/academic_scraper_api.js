@@ -40,87 +40,104 @@ app.post('/api/scrape-academic-record', (req, res) => {
   
   // Define path to the Python script within the scrapers folder
   const scriptPath = path.join(__backendDir, 'scrapers', 'ScrapeCourses.py');
-  // Define path to the virtual environment python executable relative to project root
-  const pythonExecutable = path.join(__projectRoot, '.venv', 'bin', 'python');
   
-  // Run the Python scraper using the virtual environment's python
-  // const pythonProcess = spawn(pythonExecutable, [scriptPath], { cwd: __backendDir }); // Run from backend dir
-  // let scriptOutput = "";
-  // let scriptError = "";
+  // Check if Python script exists
+  if (!fs.existsSync(scriptPath)) {
+    console.error(`Python script not found at: ${scriptPath}`);
+    scrapingJobs[jobId].status = 'failed';
+    scrapingJobs[jobId].message = `Python script not found at: ${scriptPath}`;
+    scrapingJobs[jobId].completed = new Date();
+    
+    return res.json({
+      jobId,
+      status: 'failed',
+      message: `Python script not found: ${scriptPath}`
+    });
+  }
   
-  // pythonProcess.stdout.on('data', (data) => {
-  //   const output = data.toString();
-  //   console.log(`Scraper stdout: ${output}`);
-  //   scriptOutput += output;
-  //   scrapingJobs[jobId].log += output;
-  //   // Update message with the latest line of output
-  //   const lines = output.trim().split('\n');
-  //   if (lines.length > 0) {
-  //       scrapingJobs[jobId].message = lines[lines.length - 1];
-  //   }
-  // });
+  // Try to use system Python if virtual environment not available
+  const pythonExecutable = process.platform === 'win32' ? 'python' : 'python3';
   
-  // pythonProcess.stderr.on('data', (data) => {
-  //   const errorOutput = data.toString();
-  //   console.error(`Scraper stderr: ${errorOutput}`);
-  //   scriptError += errorOutput;
-  //   scrapingJobs[jobId].log += `ERROR: ${errorOutput}`;
-  //   scrapingJobs[jobId].message = `Scraper error occurred...`; // Update message on error
-  // });
+  console.log(`Running Python script: ${pythonExecutable} ${scriptPath}`);
   
-  // pythonProcess.on('close', (code) => {
-  //   console.log(`Scraper exited with code ${code}`);
-  //   scrapingJobs[jobId].log += `\n--- Process exited with code ${code} ---\n`;
-  //   scrapingJobs[jobId].completed = new Date();
+  // Run the Python scraper
+  const pythonProcess = spawn(pythonExecutable, [scriptPath], { cwd: __backendDir });
+  let scriptOutput = "";
+  let scriptError = "";
   
-  //   // Define path to the output file within the backend folder
-  //   const resultPath = path.join(__backendDir, 'user_completed_courses.json');
+  pythonProcess.stdout.on('data', (data) => {
+    const output = data.toString();
+    console.log(`Scraper stdout: ${output}`);
+    scriptOutput += output;
+    scrapingJobs[jobId].log += output;
+    // Update message with the latest line of output
+    const lines = output.trim().split('\n');
+    if (lines.length > 0) {
+        scrapingJobs[jobId].message = lines[lines.length - 1];
+    }
+  });
   
-  //   if (code === 0) {
-  //     try {
-  //       // Read the results file
-  //       if (fs.existsSync(resultPath)) {
-  //         const fileData = fs.readFileSync(resultPath, 'utf8');
-  //         const courses = JSON.parse(fileData);
+  pythonProcess.stderr.on('data', (data) => {
+    const errorOutput = data.toString();
+    console.error(`Scraper stderr: ${errorOutput}`);
+    scriptError += errorOutput;
+    scrapingJobs[jobId].log += `ERROR: ${errorOutput}`;
+    scrapingJobs[jobId].message = `Scraper error occurred...`; // Update message on error
+  });
   
-  //         scrapingJobs[jobId].status = 'completed';
-  //         scrapingJobs[jobId].message = `Successfully scraped ${courses.length} courses`;
-  //         scrapingJobs[jobId].result = courses;
-  //         scrapingJobs[jobId].log += "Results file processed successfully.\n";
-  //       } else {
-  //         scrapingJobs[jobId].status = 'failed';
-  //         scrapingJobs[jobId].message = 'Scraper completed but results file not found';
-  //         scrapingJobs[jobId].log += "ERROR: Results file (user_completed_courses.json) not found.\n";
-  //       }
-  //     } catch (error) {
-  //       scrapingJobs[jobId].status = 'failed';
-  //       scrapingJobs[jobId].message = `Error processing results file: ${error.message}`;
-  //       scrapingJobs[jobId].log += `ERROR processing results file: ${error.message}\n`;
-  //       console.error("Error processing results file:", error);
-  //     }
-  //   } else {
-  //     scrapingJobs[jobId].status = 'failed';
-  //     scrapingJobs[jobId].message = `Scraper failed with exit code ${code}. Check log for details.`;
-  //     scrapingJobs[jobId].log += `Scraper script failed. Raw stderr output:\n${scriptError}`; // Include stderr in log
-  //     console.error(`Scraper failed. Stderr: ${scriptError}`);
-  //   }
-  // });
+  pythonProcess.on('close', (code) => {
+    console.log(`Scraper exited with code ${code}`);
+    scrapingJobs[jobId].log += `\n--- Process exited with code ${code} ---\n`;
+    scrapingJobs[jobId].completed = new Date();
   
-  // pythonProcess.on('error', (err) => {
-  //     console.error('Failed to start scraper process:', err);
-  //     scrapingJobs[jobId].status = 'failed';
-  //     scrapingJobs[jobId].message = `Failed to start Python process: ${err.message}`;
-  //     scrapingJobs[jobId].log += `ERROR: Failed to start Python process: ${err.message}\n`;
-  //     scrapingJobs[jobId].completed = new Date();
-  //     // Respond immediately if process couldn't even start
-  //      if (!res.headersSent) {
-  //          res.status(500).json({
-  //               jobId,
-  //               status: 'failed',
-  //               message: scrapingJobs[jobId].message
-  //           });
-  //      }
-  // });
+    // Define path to the output file within the data folder
+    const resultPath = path.join(__backendDir, '..', 'data', 'user_completed_courses.json');
+  
+    if (code === 0) {
+      try {
+        // Read the results file
+        if (fs.existsSync(resultPath)) {
+          const fileData = fs.readFileSync(resultPath, 'utf8');
+          const courses = JSON.parse(fileData);
+  
+          scrapingJobs[jobId].status = 'completed';
+          scrapingJobs[jobId].message = `Successfully scraped ${courses.length} courses`;
+          scrapingJobs[jobId].result = courses;
+          scrapingJobs[jobId].log += "Results file processed successfully.\n";
+        } else {
+          scrapingJobs[jobId].status = 'failed';
+          scrapingJobs[jobId].message = 'Scraper completed but results file not found';
+          scrapingJobs[jobId].log += "ERROR: Results file (user_completed_courses.json) not found.\n";
+        }
+      } catch (error) {
+        scrapingJobs[jobId].status = 'failed';
+        scrapingJobs[jobId].message = `Error processing results file: ${error.message}`;
+        scrapingJobs[jobId].log += `ERROR processing results file: ${error.message}\n`;
+        console.error("Error processing results file:", error);
+      }
+    } else {
+      scrapingJobs[jobId].status = 'failed';
+      scrapingJobs[jobId].message = `Scraper failed with exit code ${code}. Check log for details.`;
+      scrapingJobs[jobId].log += `Scraper script failed. Raw stderr output:\n${scriptError}`; // Include stderr in log
+      console.error(`Scraper failed. Stderr: ${scriptError}`);
+    }
+  });
+  
+  pythonProcess.on('error', (err) => {
+      console.error('Failed to start scraper process:', err);
+      scrapingJobs[jobId].status = 'failed';
+      scrapingJobs[jobId].message = `Failed to start Python process: ${err.message}`;
+      scrapingJobs[jobId].log += `ERROR: Failed to start Python process: ${err.message}\n`;
+      scrapingJobs[jobId].completed = new Date();
+      // Respond immediately if process couldn't even start
+       if (!res.headersSent) {
+           res.status(500).json({
+                jobId,
+                status: 'failed',
+                message: scrapingJobs[jobId].message
+            });
+       }
+  });
   
   // Return job ID immediately if process started
   // Check if headers are already sent prevents crashing if pythonProcess.on('error') responded first
