@@ -15,6 +15,7 @@ import { Calendar, GraduationCap, BookOpen } from "lucide-react"
 import type { Course, SelectedCourse, Notification, Major, Requirements } from "@/lib/types"
 import { fetchCourses, fetchRequirements } from "@/lib/data-utils"
 import { hasConflict } from "@/lib/schedule-utils"
+import { useSession } from "next-auth/react"
 
 export default function CourseScheduler() {
   // State
@@ -37,6 +38,7 @@ export default function CourseScheduler() {
   const [majors, setMajors] = useState<Major[]>([])
   const [isDataReady, setIsDataReady] = useState<boolean>(false)
   const [activeTab, setActiveTab] = useState("schedule")
+  const { data: session } = useSession()
 
   // Initialize app
   useEffect(() => {
@@ -76,6 +78,62 @@ export default function CourseScheduler() {
 
     initializeApp()
   }, [])
+
+  // Load saved courses when user is logged in
+  useEffect(() => {
+    const loadSavedCourses = async () => {
+      if (session?.user) {
+        try {
+          const response = await fetch('/api/courses')
+          if (response.ok) {
+            const savedCourses = await response.json()
+            // Convert saved courses to the correct format
+            const formattedCourses = savedCourses.map((course: any) => ({
+              id: course.id,
+              Class: course.courseClass,
+              Section: course.section,
+              Instructor: course.instructor,
+              DaysTimes: course.daysTimes,
+              Room: course.room
+            }))
+            setSelectedCourses(formattedCourses)
+            showNotification("Loaded your saved courses", "success")
+          }
+        } catch (error) {
+          console.error("Failed to load saved courses:", error)
+          showNotification("Failed to load your saved courses", "error")
+        }
+      }
+    }
+
+    loadSavedCourses()
+  }, [session])
+
+  // Save courses when they change
+  useEffect(() => {
+    const saveCourses = async () => {
+      if (session?.user && selectedCourses.length > 0) {
+        try {
+          const response = await fetch('/api/courses', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(selectedCourses)
+          })
+          
+          if (!response.ok) {
+            throw new Error('Failed to save courses')
+          }
+        } catch (error) {
+          console.error("Failed to save courses:", error)
+          showNotification("Failed to save your course selection", "error")
+        }
+      }
+    }
+
+    saveCourses()
+  }, [selectedCourses, session])
 
   // Only generate schedule after major and year selection
   useEffect(() => {
@@ -347,41 +405,41 @@ export default function CourseScheduler() {
 
   // Add course from search
   const addCourseFromSearch = (course: Course) => {
-    // First check if the course exists in our database
-    const existingCourse = courses.find(
-      (c) => c.Class?.toLowerCase() === course.Class?.toLowerCase() && 
-             c.Section?.toLowerCase() === course.Section?.toLowerCase()
-    );
-
-    if (!existingCourse) {
-      showNotification(`Course ${course.Class} ${course.Section} not found in the database.`, "error");
-      return;
+    if (!course.Class || !course.Section) {
+      showNotification("Invalid course data", "error")
+      return
     }
 
+    // Check for duplicates
+    const isDuplicate = selectedCourses.some(
+      (c) => c.Class === course.Class && c.Section === course.Section
+    )
+
+    if (isDuplicate) {
+      showNotification("This course is already in your schedule", "warning")
+      return
+    }
+
+    // Check for time conflicts
     if (hasConflict(course, selectedCourses)) {
-      showNotification(`Time conflict: Cannot add ${course.Class} ${course.Section}.`, "warning");
-      return;
+      showNotification("This course conflicts with your schedule", "error")
+      return
     }
 
     const newCourse: SelectedCourse = {
       ...course,
       id: `course-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    };
+    }
 
-    setSelectedCourses((prev) => [...prev, newCourse]);
-    showNotification(`${course.Class} ${course.Section} added to your schedule.`, "success");
-
-    // Close the search popup after adding a course
-    setIsSearchPopupOpen(false);
-  };
+    setSelectedCourses((prev) => [...prev, newCourse])
+    showNotification(`Added ${course.Class} to your schedule`, "success")
+    setIsSearchPopupOpen(false)
+  }
 
   // Remove course
   const removeCourse = (courseId: string) => {
-    const courseToRemove = selectedCourses.find((c) => c.id === courseId)
-    if (courseToRemove) {
-      setSelectedCourses(selectedCourses.filter((c) => c.id !== courseId))
-      showNotification(`Removed ${courseToRemove.Class} ${courseToRemove.Section}`, "default")
-    }
+    setSelectedCourses((prev) => prev.filter((c) => c.id !== courseId))
+    showNotification("Course removed from schedule", "success")
   }
 
   // Show course details
@@ -434,7 +492,7 @@ export default function CourseScheduler() {
     type: "success" | "warning" | "error" | "default" = "default",
     duration = 3000,
   ) => {
-    const id = Date.now().toString()
+    const id = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
     
     // Format message - make first letter uppercase if not already
     const formattedMessage = message.charAt(0).toUpperCase() + message.slice(1);
