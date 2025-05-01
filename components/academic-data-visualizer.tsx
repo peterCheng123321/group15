@@ -14,9 +14,14 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { FileUp } from "lucide-react"
-import type { CourseData } from "@/lib/academic-data"
+import type { CourseData, AcademicDataVisualizerProps } from "@/lib/academic-data"
 
-export function AcademicDataVisualizer() {
+export function AcademicDataVisualizer({
+  selectedMajor,
+  selectedYear,
+  requirements,
+  selectedCourses,
+}: AcademicDataVisualizerProps) {
   const [courseData, setCourseData] = useState<CourseData[] | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 

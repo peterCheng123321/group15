@@ -62,7 +62,7 @@ export function AcademicCalendarDisplay({ courses }: AcademicCalendarDisplayProp
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center py-10 text-center text-muted-foreground">
           <p>No academic data loaded</p>
-          <p className="text-sm mt-2">Use the "Academic Data Processor" to load your course data</p>
+          <p className="text-sm mt-2">Use the "Import from MySlice" button to load your course data</p>
         </CardContent>
       </Card>
     )
@@ -93,19 +93,16 @@ export function AcademicCalendarDisplay({ courses }: AcademicCalendarDisplayProp
             <div className="space-y-6">
               {sortedTerms.map((term) => {
                 const termCourses = groupedCourses[term] || []
-                const termGPA = calculateGPA(termCourses)
-                const termCredits = calculateTotalCredits(termCourses)
-
                 return (
-                  <div key={term} className="border rounded-lg overflow-hidden">
-                    <div className="bg-slate-50 p-3 border-b flex items-center justify-between">
-                      <h3 className="font-medium text-lg">{term}</h3>
-                      <div className="flex gap-4 text-sm">
-                        <span>Credits: {termCredits}</span>
-                        <span>GPA: {termGPA}</span>
+                  <div key={term} className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-lg font-medium">{term}</h3>
+                      <div className="flex gap-4">
+                        <Badge variant="outline">Credits: {calculateTotalCredits(termCourses)}</Badge>
+                        <Badge variant="outline">GPA: {calculateGPA(termCourses)}</Badge>
                       </div>
                     </div>
-                    <div className="p-3">
+
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         {termCourses.map((course, idx) => (
                           <div
@@ -127,7 +124,6 @@ export function AcademicCalendarDisplay({ courses }: AcademicCalendarDisplayProp
                             </div>
                           </div>
                         ))}
-                      </div>
                     </div>
                   </div>
                 )
