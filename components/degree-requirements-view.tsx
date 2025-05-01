@@ -95,13 +95,13 @@ export function DegreeRequirementsView({ courses }: DegreeRequirementsViewProps)
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                           {category.completed.map((course, idx) => (
                             <div
-                              key={`${course.course}-${idx}`}
+                              key={`${course.code}-${idx}`}
                               className="flex items-center gap-2 p-2 border rounded bg-slate-50"
                             >
                               <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
                               <div className="min-w-0 flex-1">
                                 <div className="flex justify-between items-center">
-                                  <div className="font-medium truncate">{course.course}</div>
+                                  <div className="font-medium truncate">{course.code}</div>
                                   <div className="font-medium" style={{ color: getGradeColor(course.grade) }}>
                                     {course.grade}
                                   </div>
@@ -126,13 +126,13 @@ export function DegreeRequirementsView({ courses }: DegreeRequirementsViewProps)
                             .filter((c) => (c.requirementGroup || "General Education") === group)
                             .map((course, idx) => (
                               <div
-                                key={`ip-${course.course}-${idx}`}
+                                key={`ip-${course.code}-${idx}`}
                                 className="flex items-center gap-2 p-2 border rounded bg-blue-50"
                               >
                                 <Clock className="h-4 w-4 text-blue-500 flex-shrink-0" />
                                 <div className="min-w-0 flex-1">
                                   <div className="flex justify-between items-center">
-                                    <div className="font-medium truncate">{course.course}</div>
+                                    <div className="font-medium truncate">{course.code}</div>
                                     <div className="font-medium text-blue-500">IP</div>
                                   </div>
                                   <div className="text-xs text-slate-500 truncate">{course.title}</div>
@@ -222,8 +222,8 @@ export function DegreeRequirementsView({ courses }: DegreeRequirementsViewProps)
                             </thead>
                             <tbody>
                               {category.completed.map((course, idx) => (
-                                <tr key={`${course.course}-${idx}`} className="border-t hover:bg-slate-50">
-                                  <td className="p-3 font-medium">{course.course}</td>
+                                <tr key={`${course.code}-${idx}`} className="border-t hover:bg-slate-50">
+                                  <td className="p-3 font-medium">{course.code}</td>
                                   <td className="p-3">{course.title}</td>
                                   <td className="p-3 font-medium" style={{ color: getGradeColor(course.grade) }}>
                                     {course.grade}
@@ -260,8 +260,8 @@ export function DegreeRequirementsView({ courses }: DegreeRequirementsViewProps)
                               {inProgressCourses
                                 .filter((c) => (c.requirementGroup || "General Education") === group)
                                 .map((course, idx) => (
-                                  <tr key={`ip-${course.course}-${idx}`} className="border-t hover:bg-slate-50">
-                                    <td className="p-3 font-medium">{course.course}</td>
+                                  <tr key={`ip-${course.code}-${idx}`} className="border-t hover:bg-slate-50">
+                                    <td className="p-3 font-medium">{course.code}</td>
                                     <td className="p-3">{course.title}</td>
                                     <td className="p-3 font-medium text-blue-500">In Progress</td>
                                     <td className="p-3">{course.credits}</td>

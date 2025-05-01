@@ -1,0 +1,492 @@
+[
+  {
+    "code": "AAA 300",
+    "name": "Selected Topics (Asian American & Social Inequa)",
+    "term": "Fall 2021",
+    "grade": "A-",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "BIO 121",
+    "name": "General Biology I",
+    "term": "Fall 2022",
+    "grade": "TR",
+    "credits": "4.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "CIS 151",
+    "name": "Fund'ls: ComputingProgramming",
+    "term": "Spring 2023",
+    "grade": "A",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "CIS 252",
+    "name": "Elements of Computer Science",
+    "term": "Fall 2023",
+    "grade": "A",
+    "credits": "4.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "CIS 321",
+    "name": "Intro to Probablty/Statis",
+    "term": "Spring 2024",
+    "grade": "B",
+    "credits": "4.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "CIS 341",
+    "name": "Cptr OrganProgrmmng Syst",
+    "term": "Fall 2024",
+    "grade": "B",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "CIS 351",
+    "name": "Data Structures",
+    "term": "Spring 2024",
+    "grade": "B+",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "CIS 352",
+    "name": "Progrmng Lang:ThryPrctic",
+    "term": "Fall 2024",
+    "grade": "A",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "CIS 375",
+    "name": "Intro to Discrete Mathematics",
+    "term": "Fall 2023",
+    "grade": "A-",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "CIS 453",
+    "name": "Software Spec. and Design",
+    "term": "Fall 2024",
+    "grade": "A",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "CIS 454",
+    "name": "Software Implementation",
+    "term": "Spring 2025",
+    "grade": "IP",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "CIS 467",
+    "name": "Intro/Artfcl. Intellgence",
+    "term": "Fall 2021",
+    "grade": "TR",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "CIS 473",
+    "name": "Automata and Computability",
+    "term": "Spring 2024",
+    "grade": "B",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "CIS 477",
+    "name": "Intro/Analysis of Algorithms",
+    "term": "Fall 2021",
+    "grade": "TR",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "CIS 651",
+    "name": "Mobile Application Programming",
+    "term": "Fall 2021",
+    "grade": "TR",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "CLS 105",
+    "name": "College Learning Strategies",
+    "term": "Fall 2022",
+    "grade": "A",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "CRS 325",
+    "name": "Presentational Speaking",
+    "term": "Fall 2022",
+    "grade": "TR",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "CSE 384",
+    "name": "Systems & Network Programming",
+    "term": "Fall 2024",
+    "grade": "A-",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "CSE 400",
+    "name": "Selected Topics (Founds of Human Comp Intractn)",
+    "term": "Summer 2024",
+    "grade": "A-",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "CSE 486",
+    "name": "Design Operating Systems",
+    "term": "Spring 2025",
+    "grade": "IP",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "CSE 581",
+    "name": "Intro D/Base Mngmt Syst.",
+    "term": "Summer 2024",
+    "grade": "B",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "ECN 101",
+    "name": "Introductory Microeconomics",
+    "term": "Fall 2021",
+    "grade": "A",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "ECN 102",
+    "name": "Introductory Macroeconomics",
+    "term": "Fall 2021",
+    "grade": "A",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "ECN 310",
+    "name": "SpecialTopics In Economics (Economics of Education)",
+    "term": "Fall 2022",
+    "grade": "WD",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "ECS 101",
+    "name": "Introduction to Engr/Cmptr Sci",
+    "term": "Fall 2023",
+    "grade": "A",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "ECS 392",
+    "name": "Ethical Aspects of ECS",
+    "term": "Fall 2024",
+    "grade": "A-",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "EDU 221",
+    "name": "Education for Transformation",
+    "term": "Fall 2022",
+    "grade": "B+",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "ENL 207",
+    "name": "Adv Skills for ESOL",
+    "term": "Fall 2021",
+    "grade": "A",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "ENL 211",
+    "name": "Comp for ESOL Students",
+    "term": "Spring 2022",
+    "grade": "B+",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "ENL 213",
+    "name": "Adv Wrt  for ESOL Students",
+    "term": "Spring 2023",
+    "grade": "A",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "FOR 207",
+    "name": "Introduction to Economics",
+    "term": "Spring 2022",
+    "grade": "A-",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "FST 203",
+    "name": "Fine Pastries and Desserts",
+    "term": "Spring 2022",
+    "grade": "A",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "FST 222",
+    "name": "Introduction to Culinary Arts",
+    "term": "Spring 2022",
+    "grade": "B+",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "FYS 101",
+    "name": "First Year Seminar (First Year Seminar)",
+    "term": "Fall 2021",
+    "grade": "B+",
+    "credits": "1.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "HFS 388",
+    "name": "Human Sexuality",
+    "term": "Fall 2022",
+    "grade": "A",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "HST 320",
+    "name": "Traditional China",
+    "term": "Fall 2022",
+    "grade": "A-",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "MAT 295",
+    "name": "Calculus I",
+    "term": "Fall 2022",
+    "grade": "A",
+    "credits": "4.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "MAT 296",
+    "name": "Calculus II",
+    "term": "Spring 2023",
+    "grade": "A-",
+    "credits": "4.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "MAT 331",
+    "name": "1st Course in Linear Algebra",
+    "term": "Fall 2023",
+    "grade": "A",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "MAT 397",
+    "name": "Calculus III",
+    "term": "Spring 2025",
+    "grade": "IP",
+    "credits": "4.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "MAT 531",
+    "name": "2nd Course:Linear Algebra",
+    "term": "Spring 2025",
+    "grade": "IP",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "MAT 541",
+    "name": "Introduction to Number Theory",
+    "term": "Spring 2024",
+    "grade": "B+",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "MAT 551",
+    "name": "Fundamental Concepts Geometry",
+    "term": "Spring 2024",
+    "grade": "WD",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "NSD 225",
+    "name": "Nutrition in Health",
+    "term": "Spring 2022",
+    "grade": "A-",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "PHI 171",
+    "name": "Critical Thinking",
+    "term": "Fall 2021",
+    "grade": "A-",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "PHI 251",
+    "name": "Logic",
+    "term": "Spring 2023",
+    "grade": "A-",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "PHY 211",
+    "name": "General Physics I",
+    "term": "Spring 2023",
+    "grade": "B+",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "PHY 221",
+    "name": "General Physics I Laboratory",
+    "term": "Spring 2023",
+    "grade": "A",
+    "credits": "1.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  },
+  {
+    "code": "SOC 305",
+    "name": "Sociology of Sex & Gender",
+    "term": "Fall 2022",
+    "grade": "TR",
+    "credits": "3.00",
+    "requirementGroup": null,
+    "isRecommended": false,
+    "isFuture": false
+  }
+]

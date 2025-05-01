@@ -27,6 +27,7 @@ export default function AcademicProgressPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showImporter, setShowImporter] = useState(false);
+  const [expandedTerms, setExpandedTerms] = useState<Record<string, boolean>>({});
 
   // Fetch initial data (ECS requirements, courses, etc.)
   useEffect(() => {
@@ -198,6 +199,13 @@ export default function AcademicProgressPage() {
     return { terms, termMap };
   }, [studentCourses, recommendedCourses, futureRequirements]);
 
+  const toggleTerm = (term: string) => {
+    setExpandedTerms(prev => ({
+      ...prev,
+      [term]: !prev[term]
+    }));
+  };
+
   // Render Functions for UI parts
   const renderRequirementsProgress = () => {
     if (!majorReqData || !majorReqData.categories) return <p>Select a major to view requirements.</p>;
@@ -215,21 +223,21 @@ export default function AcademicProgressPage() {
       const progress = requiredCount > 0 ? Math.round((completedCount / requiredCount) * 100) : 0;
 
       return (
-        <Card key={categoryName} className="mb-4">
+        <Card key={categoryName} className="mb-4 hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-lg font-medium">{categoryName}</CardTitle>
-              <Tag variant={progress === 100 ? 'success' : 'default'}>
+              <CardTitle className="text-lg font-medium text-gray-800">{categoryName}</CardTitle>
+              <Tag variant={progress === 100 ? 'success' : 'default'} className="px-3 py-1">
                 {progress === 100 ? <CheckCircle className="h-4 w-4 mr-1"/> : null}
                 {progress}%
               </Tag>
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground mb-2">
-              {completedCount} of {requiredCount} courses completed.
+            <p className="text-sm text-gray-600 mb-2">
+              {completedCount} of {requiredCount} courses completed
             </p>
-            <Progress value={progress} />
+            <Progress value={progress} className="h-2" />
           </CardContent>
         </Card>
       );
@@ -266,16 +274,25 @@ export default function AcademicProgressPage() {
         </div>
         
         {remaining.map(({ category, courses }) => (
-          <div key={category} className="mb-4">
-            <Typography variant="h6" className="mb-2">{category}</Typography>
-            <List>
-              {courses.map((course, idx) => (
-                <List.Item key={`${course.code}-${idx}`}>
-                  {course.code} - {course.name || 'No title available'}
-                </List.Item>
-              ))}
-            </List>
-          </div>
+          <Card key={category} className="mb-4 hover:shadow-md transition-shadow">
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-lg font-medium text-gray-800">{category}</CardTitle>
+                <Tag variant="outline" className="px-3 py-1">
+                  {courses.length} courses
+                </Tag>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <p className="text-gray-700">{category}</p>
+                <div className="flex items-center text-sm text-gray-500">
+                  <GraduationCap className="h-4 w-4 mr-1" />
+                  <span>{courses.length} credits</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </>
     );
@@ -285,55 +302,58 @@ export default function AcademicProgressPage() {
     if (coursesByTerm.terms.length === 0) return <p>No course data available for calendar view.</p>;
     
     return (
-      <div className="space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {coursesByTerm.terms.map(term => (
-            <Card key={term} className="overflow-hidden">
-              <CardHeader className={`${term.includes('2024') ? 'bg-blue-50' : ''}`}>
-                <CardTitle className="text-lg flex items-center justify-between">
-                  <span>{term}</span>
-                  {term.includes('2024') && term.includes('Fall') && (
-                    <Tag variant="success" className="ml-2">Coming Next</Tag>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <List>
-                  {coursesByTerm.termMap[term].map((course, idx) => (
-                    <List.Item key={`${course.code}-${idx}`} className="flex items-center">
-                      <div className="flex-1">
-                        <div className="font-medium">
-                          {course.code} 
-                          {course.isRecommended && <Tag colorScheme="blue" className="ml-2 text-xs">Recommended</Tag>}
-                          {course.isFuture && <Tag colorScheme="gray" className="ml-2 text-xs">Required</Tag>}
-                        </div>
-                        <div className="text-sm text-muted-foreground">{course.name}</div>
-                      </div>
-                      <div className="flex items-center">
-                        {course.credits && <span className="text-sm mr-3">{course.credits} cr</span>}
-                        {course.grade && (
-                          <Tag 
-                            className={`font-mono ${course.grade === 'IP' ? 'text-blue-700' : ''}`}
-                            colorScheme={
-                              course.grade === 'IP' ? 'blue' : 
-                              course.grade.startsWith('A') ? 'green' : 
-                              course.grade.startsWith('B') ? 'blue' : 
-                              course.grade.startsWith('C') ? 'yellow' : 
-                              course.grade.startsWith('D') ? 'orange' : 
-                              course.grade === 'F' ? 'red' : 'gray'
-                            }
-                          >
-                            {course.grade}
-                          </Tag>
-                        )}
-                      </div>
-                    </List.Item>
-                  ))}
-                </List>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      <div className="space-y-4">
+        {coursesByTerm.terms.map(term => {
+          const [season, year] = term.split(' ');
+          const isCurrentYear = year === '2024';
+          const termCourses = coursesByTerm.termMap[term];
+          
+          return (
+            <div key={term} className="border rounded-lg overflow-hidden">
+              <button 
+                className="w-full p-4 bg-gray-50 hover:bg-gray-100 flex justify-between items-center"
+                onClick={() => {
+                  const content = document.getElementById(`term-${term}`);
+                  if (content) {
+                    content.style.display = content.style.display === 'none' ? 'block' : 'none';
+                  }
+                }}
+              >
+                <div className="flex items-center space-x-2">
+                  <Calendar className="h-5 w-5 text-gray-600" />
+                  <span className="text-lg font-medium">{term}</span>
+                  {isCurrentYear && <Tag variant="success" className="ml-2">Current</Tag>}
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-500">
+                    {termCourses.length} courses
+                  </span>
+                  <svg 
+                    className="h-5 w-5 text-gray-500 transform transition-transform" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </button>
+              
+              <div id={`term-${term}`} className="divide-y">
+                {termCourses.map((course, idx) => (
+                  <div key={`${course.code}-${idx}`} className="p-4 hover:bg-gray-50">
+                    <div className="flex items-center space-x-4">
+                      <span className="font-medium w-24">{course.code}</span>
+                      <span className="text-gray-700 flex-1">{course.name}</span>
+                      <span className="text-gray-500 w-16">{course.credits}</span>
+                      <span className="text-gray-500 w-16">{course.grade || 'N/A'}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
     );
   };
@@ -359,157 +379,34 @@ export default function AcademicProgressPage() {
             <Typography variant="subtitle" className="mb-4">These courses are recommended based on your academic progress and profile</Typography>
             <div className="space-y-6">
               {recommendedCourses.map((course, idx) => (
-                <Card key={`rec-${idx}`} className={`${course.highly_recommended ? 'bg-green-50 border-green-200' : 'bg-blue-50'}`}>
+                <Card key={`rec-${idx}`} className="mb-4 hover:shadow-md transition-shadow">
                   <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-lg">{course.code}: {course.name}</CardTitle>
-                        <div className="text-sm text-muted-foreground mt-1">
-                          {course.credits} credits • {course.term}
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        {course.fulfills_requirement && (
-                          <Tag colorScheme="purple" className="mb-1">Major Requirement</Tag>
-                        )}
-                        {course.highly_recommended && !course.fulfills_requirement && (
-                          <Tag colorScheme="green" className="mb-1">Highly Recommended</Tag>
-                        )}
-                        {course.difficulty_warning && (
-                          <Tag colorScheme="orange">Challenging Course</Tag>
-                        )}
-                        {!course.difficulty_warning && !course.highly_recommended && !course.fulfills_requirement && (
-                          <Tag colorScheme="blue">Recommended</Tag>
-                        )}
-                      </div>
+                    <div className="flex justify-between items-center">
+                      <CardTitle className="text-lg font-medium text-gray-800">{course.code}</CardTitle>
+                      <Tag variant="warning" className="px-3 py-1">
+                        Recommended
+                      </Tag>
                     </div>
                   </CardHeader>
-                  
                   <CardContent>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div>
-                        {/* Professor and Rating */}
-                        {course.professor && (
-                          <div className="mb-3">
-                            <Typography variant="subtitle" className="text-sm font-medium">Professor</Typography>
-                            <div className="flex items-center mt-1">
-                              <span className="font-medium">{course.professor}</span>
-                              <div className="ml-2 bg-white px-2 py-1 rounded text-xs flex items-center">
-                                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 mr-1" />
-                                <span className={`font-bold ${
-                                  course.professor_rating >= 4.5 ? 'text-green-600' : 
-                                  course.professor_rating >= 3.5 ? 'text-blue-600' : 
-                                  'text-orange-600'
-                                }`}>
-                                  {course.professor_rating}/5.0
-                                </span>
+                    <div className="space-y-2">
+                      <p className="text-gray-700">{course.name}</p>
+                      <div className="flex items-center text-sm text-gray-500">
+                        <GraduationCap className="h-4 w-4 mr-1" />
+                        <span>{course.credits} credits</span>
+                      </div>
+                      {course.student_feedback && course.student_feedback.length > 0 && (
+                        <div className="mt-2">
+                          <Typography variant="subtitle" className="text-sm font-medium text-gray-600">Student Feedback</Typography>
+                          <div className="mt-1 space-y-2">
+                            {course.student_feedback.map((feedback, fidx) => (
+                              <div key={`feedback-${fidx}`} className="bg-gray-50 rounded p-2 text-xs italic text-gray-600">
+                                "{feedback}"
                               </div>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Course Details */}
-                        <div className="mb-3">
-                          <Typography variant="subtitle" className="text-sm font-medium">Course Information</Typography>
-                          <div className="grid grid-cols-2 gap-x-4 text-sm mt-1">
-                            <div>
-                              <span className="text-muted-foreground">Difficulty:</span>
-                              <span className={`ml-1 font-medium ${
-                                course.course_difficulty === "Easy" ? "text-green-600" :
-                                course.course_difficulty === "Moderate" ? "text-blue-600" :
-                                "text-orange-600"
-                              }`}>
-                                {course.course_difficulty}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Avg. Grade:</span>
-                              <span className="ml-1 font-medium">{course.average_grade}</span>
-                            </div>
+                            ))}
                           </div>
                         </div>
-                        
-                        {/* Requirement Info */}
-                        {course.fulfills_requirement && course.requirement_category && (
-                          <div className="mb-3">
-                            <Typography variant="subtitle" className="text-sm font-medium">Major Requirement</Typography>
-                            <p className="text-sm mt-1">
-                              This course fulfills a requirement in the <strong>{course.requirement_category}</strong> category of your major.
-                            </p>
-                          </div>
-                        )}
-                        
-                        {/* Match Reason */}
-                        {course.match_reason && (
-                          <div className="mb-3">
-                            <Typography variant="subtitle" className="text-sm font-medium">Why This Course Matches You</Typography>
-                            <p className="text-sm mt-1">{course.match_reason}</p>
-                          </div>
-                        )}
-                        
-                        {/* Prerequisites */}
-                        {course.prerequisite_codes?.length > 0 && (
-                          <div className="mb-3">
-                            <Typography variant="subtitle" className="text-sm font-medium">Prerequisites</Typography>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {course.prerequisite_codes.map(preReq => (
-                                <Tag 
-                                  key={preReq} 
-                                  variant={completedCourseCodes.has(preReq) ? "success" : inProgressCourseCodes.has(preReq) ? "default" : "outline"}
-                                  className="text-xs"
-                                >
-                                  {preReq} 
-                                  {completedCourseCodes.has(preReq) && <CheckCircle className="h-3 w-3 ml-1" />}
-                                  {inProgressCourseCodes.has(preReq) && <Clock className="h-3 w-3 ml-1" />}
-                                </Tag>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div>
-                        {/* Available Sections */}
-                        {course.sections && course.sections.length > 0 && (
-                          <div className="mb-3">
-                            <Typography variant="subtitle" className="text-sm font-medium">Available Sections</Typography>
-                            <div className="space-y-2 mt-1">
-                              {course.sections.map((section, sidx) => (
-                                <div key={`section-${sidx}`} className="bg-white rounded p-2 text-xs">
-                                  <div className="font-medium">Section {section.section} - {section.professor}</div>
-                                  <div className="flex justify-between mt-1">
-                                    <span>{section.days} {section.time}</span>
-                                    <span className="text-muted-foreground">{section.location}</span>
-                                  </div>
-                                  <div className="flex justify-between items-center mt-1">
-                                    <div>
-                                      <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 inline mr-1" />
-                                      <span className="font-medium">{section.professor_rating}</span>
-                                    </div>
-                                    <span className={`${section.seats_available < 10 ? 'text-orange-600' : 'text-green-600'}`}>
-                                      {section.seats_available} seats left
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Student Feedback */}
-                        {course.student_feedback && course.student_feedback.length > 0 && (
-                          <div>
-                            <Typography variant="subtitle" className="text-sm font-medium">Student Feedback</Typography>
-                            <div className="mt-1 space-y-2">
-                              {course.student_feedback.map((feedback, fidx) => (
-                                <div key={`feedback-${fidx}`} className="bg-white rounded p-2 text-xs italic text-muted-foreground">
-                                  "{feedback}"
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

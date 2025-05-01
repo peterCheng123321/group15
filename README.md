@@ -12,6 +12,7 @@ A modern course scheduling application built with Next.js for university student
 - **User Authentication:** Secure login and registration system
 - **Course Auto-save:** Automatic saving of course selections
 - **Academic Progress Tracking:** Monitor your degree requirements
+- **MySlice Integration:** Import course history directly from MySlice
 
 ## Tech Stack
 
@@ -22,6 +23,9 @@ A modern course scheduling application built with Next.js for university student
 - **Database:** Prisma ORM with SQLite
 - **Authentication:** NextAuth.js
 - **API:** Next.js API Routes
+- **Browser Automation:** Puppeteer
+- **HTTP Client:** Axios
+- **HTML Parsing:** Cheerio
 
 ## Database Configuration
 
@@ -99,6 +103,197 @@ GOOGLE_CLIENT_SECRET="your-google-client-secret"
 - `POST /api/courses` - Save user's courses
 - `GET /api/requirements` - Get degree requirements
 - `GET /api/sample-courses` - Get sample course data
+
+## MySlice Integration
+
+### Overview
+The application integrates with Syracuse University's MySlice system to automatically import course history and academic records.
+
+### Features
+- **Course History Import:** Automatically fetches and parses course history
+- **Microsoft Account Login:** Supports SU Microsoft account authentication
+- **2FA Support:** Handles two-factor authentication
+- **Session Management:** Maintains persistent sessions with cookies
+- **Data Parsing:** Extracts detailed course information including:
+  - Course code and title
+  - Semester information
+  - Grades and credits
+  - Course status
+
+### Environment Configuration
+
+#### 1. Environment Variables
+Create a `.env` file in the root directory with the following configuration:
+
+```env
+# Environment
+NODE_ENV=development # Change to 'test' for testing mode
+
+# Database
+DATABASE_URL="file:./dev.db"
+
+# NextAuth
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-key"
+
+# Optional: Google OAuth (if using Google authentication)
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+
+# Chrome Configuration
+CHROME_DEBUG_PORT=9222
+CHROME_DEBUG_URL="http://localhost:9222"
+```
+
+#### 2. Test Environment (Sandbox Mode)
+For testing and development purposes, use Chrome in debug mode:
+
+```bash
+# Set environment to test mode
+export NODE_ENV=test
+
+# Start Chrome in debug mode
+# macOS
+/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
+
+# Windows
+"C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222
+
+# Linux
+google-chrome --remote-debugging-port=9222
+```
+
+Test environment features:
+- Visual debugging
+- Manual intervention capability
+- Step-by-step process inspection
+- Real-time browser interaction
+
+#### 3. Production Environment
+In production, the application creates new browser instances automatically:
+
+```bash
+# Set environment to production
+export NODE_ENV=production
+
+# Start the application
+npm run dev
+```
+
+Production environment features:
+- Headless browser operation
+- Automatic browser instance management
+- Optimized performance
+- Resource-efficient operation
+
+### Browser Configuration
+
+#### Test Environment
+```javascript
+browser = await puppeteer.connect({
+  browserURL: "http://localhost:9222",
+  defaultViewport: null,
+});
+```
+
+#### Production Environment
+```javascript
+browser = await puppeteer.launch({
+  headless: true,
+  args: [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-accelerated-2d-canvas',
+    '--disable-gpu'
+  ]
+});
+```
+
+### Running the Application
+
+1. **Test Mode**
+   ```bash
+   # Set test environment
+   export NODE_ENV=test
+   
+   # Start Chrome in debug mode
+   /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
+   
+   # Run test scripts
+   node test_login.js
+   node get_courses.js
+   ```
+
+2. **Production Mode**
+   ```bash
+   # Set production environment
+   export NODE_ENV=production
+   
+   # Start the application
+   npm run dev
+   ```
+
+### Troubleshooting
+
+#### Test Environment Issues
+1. **Chrome Debug Connection**
+   ```bash
+   # Check if Chrome is running in debug mode
+   lsof -i :9222
+   
+   # Kill existing Chrome processes if needed
+   pkill -f "chrome.*remote-debugging-port"
+   ```
+
+2. **Connection Refused**
+   - Ensure Chrome is running in debug mode
+   - Verify the correct port is being used
+   - Check for firewall restrictions
+
+#### Production Environment Issues
+1. **Browser Launch Failures**
+   - Verify Chrome installation
+   - Check system resources
+   - Ensure proper permissions
+
+2. **Memory Issues**
+   - Monitor browser process memory usage
+   - Implement proper cleanup in finally blocks
+   - Use appropriate browser arguments
+
+### Security Considerations
+
+1. **Test Environment**
+   - Keep debug port secure
+   - Use localhost only
+   - Implement proper error handling
+
+2. **Production Environment**
+   - Use headless mode
+   - Implement proper sandboxing
+   - Follow security best practices
+   - Monitor resource usage
+
+### API Endpoints
+
+1. **Login to MySlice**
+   ```javascript
+   POST /api/myslice
+   {
+     "username": "your_netid@syr.edu",
+     "password": "your_password"
+   }
+   ```
+
+2. **Scrape Academic Record**
+   ```javascript
+   POST /api/scrape-academic-record
+   {
+     "username": "your_netid@syr.edu",
+     "password": "your_password"
+   }
+   ```
 
 ## Getting Started
 

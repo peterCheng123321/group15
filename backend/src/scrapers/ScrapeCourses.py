@@ -32,7 +32,7 @@ def setup_driver(headless=False):
     driver = webdriver.Chrome(service=service, options=chrome_options)
     return driver
 
-def prepare_login(driver):
+def prepare_login(driver, username=None, password=None):
     """Navigate to login page and guide users through login and 2FA verification"""
     print("🔑 Opening MySlice login page...")
     driver.get(LOGIN_URL)
@@ -47,9 +47,32 @@ def prepare_login(driver):
         print("✅ Initial MySlice page loaded or SAML redirect detected.")
 
         if "saml" in driver.current_url.lower():
-            print("🔐 SAML authentication page detected directly.")
-            print("   Please complete the login process (NetID, password, 2FA).")
-            input("--> Press Enter AFTER you have completed the SAML login and see the MySlice dashboard...")
+            print("🔐 SAML authentication page detected.")
+            if username and password:
+                try:
+                    # Find and fill in the username field
+                    username_field = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.ID, "username"))
+                    )
+                    username_field.send_keys(username)
+                    
+                    # Find and fill in the password field
+                    password_field = driver.find_element(By.ID, "password")
+                    password_field.send_keys(password)
+                    
+                    # Find and click the login button
+                    login_button = driver.find_element(By.XPATH, "//button[@type='submit']")
+                    login_button.click()
+                    
+                    print("✅ Credentials submitted. Please complete 2FA if required.")
+                    input("--> Press Enter AFTER you have completed 2FA and see the MySlice dashboard...")
+                except Exception as e:
+                    print(f"⚠️ Error during automated login: {e}")
+                    print("   Falling back to manual login...")
+                    input("--> Press Enter AFTER you have completed the login and 2FA...")
+            else:
+                print("   Please complete the login process (NetID, password, 2FA).")
+                input("--> Press Enter AFTER you have completed the SAML login and see the MySlice dashboard...")
         else:
             # Found the initial landing page with login buttons
             print("\n===========================================================")
@@ -459,65 +482,43 @@ def scrape_completed_courses(driver):
         
     return courses
 
-def scrape_user_courses(interactive=True):
-    """Main function to scrape user's completed courses with improved 2FA handling"""
-    print("\n=== 📚 Syracuse University Academic Record Scraper ===\n")
-
-    # Create a visible browser for interactive mode, headless for automated mode
-    driver = setup_driver(headless=not interactive)
-
-    login_successful = False
-
+def scrape_user_courses(interactive=True, username=None, password=None):
+    """Main function to scrape user's completed courses"""
+    driver = None
     try:
-        # First try using saved cookies
-        if os.path.exists(COOKIE_FILE):
-            print("🔍 Found saved cookies. Attempting to use them for login...")
-            login_successful = login_with_cookies(driver)
+        driver = setup_driver(headless=not interactive)
+        
+        # Try to login with cookies first
+        if not login_with_cookies(driver):
+            # If cookie login fails, try with provided credentials
+            if not prepare_login(driver, username, password):
+                print("❌ Login failed. Exiting...")
+                return None
+        
+        # Navigate to Course History page using menu clicks
+        if navigate_to_course_history(driver):
+            print("📚 Ready to scrape your academic record...")
             
-            if login_successful:
-                print("✅ Cookie login successful! This speeds up the process.")
-            else:
-                print("⚠️ Cookie login failed. Falling back to manual login.")
+            # Scrape completed courses
+            completed_courses = scrape_completed_courses(driver)
+            
+            # Save to JSON file
+            output_file = "user_completed_courses.json"
+            with open(output_file, "w") as f:
+                json.dump(completed_courses, f, indent=2)
+            
+            print(f"\n💾 Saved {len(completed_courses)} courses to {output_file}")
+            return {
+                "success": True,
+                "message": f"Successfully scraped {len(completed_courses)} courses.",
+                "courses": completed_courses
+            }
         else:
-            print("ℹ️ No saved cookies found. Manual login will be required.")
-
-        # If cookies didn't work or don't exist, do manual login
-        if not login_successful:
-            print("🔐 Beginning manual login process...")
-            login_successful = prepare_login(driver)
-
-        if login_successful:
-            # Navigate to Course History page using menu clicks
-            if navigate_to_course_history(driver):
-                print("📚 Ready to scrape your academic record...")
-                
-                # Scrape completed courses
-                completed_courses = scrape_completed_courses(driver)
-                
-                # Save to JSON file
-                output_file = "user_completed_courses.json"
-                with open(output_file, "w") as f:
-                    json.dump(completed_courses, f, indent=2)
-                
-                print(f"\n💾 Saved {len(completed_courses)} courses to {output_file}")
-                return {
-                    "success": True,
-                    "message": f"Successfully scraped {len(completed_courses)} courses.",
-                    "courses": completed_courses
-                }
-            else:
-                print("❌ Failed to navigate to Course History page.")
-                driver.save_screenshot("navigation_failure.png")
-                return {
-                    "success": False,
-                    "message": "Failed to navigate to Course History page. Please check screenshots for issues."
-                }
-        else:
-            print("❌ Failed to log in to MySlice.")
-            driver.save_screenshot("login_failure.png")
+            print("❌ Failed to navigate to Course History page.")
+            driver.save_screenshot("navigation_failure.png")
             return {
                 "success": False,
-                "message": "Failed to log in to MySlice. This may be due to 2FA issues or site changes."
+                "message": "Failed to navigate to Course History page. Please check screenshots for issues."
             }
     
     except Exception as e:
@@ -549,4 +550,7 @@ def run_scraper_backend():
     return scrape_user_courses(interactive=False)
 
 if __name__ == "__main__":
-    scrape_user_courses(interactive=True)
+    import sys
+    username = sys.argv[1] if len(sys.argv) > 1 else None
+    password = sys.argv[2] if len(sys.argv) > 2 else None
+    scrape_user_courses(interactive=True, username=username, password=password)
