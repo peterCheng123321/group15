@@ -1,14 +1,22 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Button, Card, Alert, Spinner, List, Tag, Progress, Typography, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, CardHeader, CardTitle, CardContent } from '@/components/ui';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Alert } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { List } from '@/components/ui/list';
+import { Tag } from '@/components/ui/tag';
+import { Typography } from '@/components/ui/typography';
+import { Spinner } from '@/components/ui/spinner';
 import { Clock, CheckCircle, AlertCircle, BookOpen, Download, BarChart2, ListChecks, GraduationCap, Star, Book, Calendar, User, School, ArrowRight } from 'lucide-react';
 import AcademicRecordImporter from '@/components/AcademicRecordImporter';
 
 // Constants
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-const ECS_REQUIREMENTS_PATH = '/backend/data/ecs_requirements_cleaned.json'; // Updated path relative to public folder or served via API
-const SAMPLE_COURSES_PATH = '/api/sample-courses'; // Use an API endpoint to serve the sample data
+const ECS_REQUIREMENTS_PATH = '/api/requirements';
+const SAMPLE_COURSES_PATH = '/api/sample-courses';
 const GRADE_POINTS = {
     'A+': 4.0, 'A': 4.0, 'A-': 3.7, 'B+': 3.3, 'B': 3.0, 'B-': 2.7,
     'C+': 2.3, 'C': 2.0, 'C-': 1.7, 'D+': 1.3, 'D': 1.0, 'F': 0.0,
@@ -27,7 +35,7 @@ export default function AcademicProgressPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showImporter, setShowImporter] = useState(false);
-  const [expandedTerms, setExpandedTerms] = useState<Record<string, boolean>>({});
+  const [expandedTerms, setExpandedTerms] = useState({});
 
   // Fetch initial data (ECS requirements, courses, etc.)
   useEffect(() => {
@@ -199,7 +207,7 @@ export default function AcademicProgressPage() {
     return { terms, termMap };
   }, [studentCourses, recommendedCourses, futureRequirements]);
 
-  const toggleTerm = (term: string) => {
+  const toggleTerm = (term) => {
     setExpandedTerms(prev => ({
       ...prev,
       [term]: !prev[term]

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-// import { login } from "@/lib/myslice_scraper";
+import { login } from "../../../backend/src/myslice_scraper.js";
 
 // Ensure this route is dynamic
 export const dynamic = "force-dynamic";
@@ -25,11 +25,11 @@ export async function POST(request) {
 
     console.log("Attempting to login to MySlice...");
     // Login to MySlice
-    await login(username, password);
+    const result = await login(username, password, Date.now().toString());
 
     console.log("Login successful, fetching course history...");
     // Get course history
-    const courses = await getCourseHistory();
+    const courses = result.courses;
     console.log("Course history fetched successfully");
 
     return NextResponse.json({ success: true, courses });
