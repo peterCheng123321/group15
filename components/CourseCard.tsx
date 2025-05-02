@@ -47,7 +47,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
 
   return (
     <Card 
-      className="absolute w-[90%] left-[5%] overflow-hidden shadow-md border border-gray-200 dark:border-gray-800 rounded-md"
+      className="absolute w-[90%] left-[5%] overflow-hidden shadow-sm border border-gray-200 rounded-md"
       style={{
         top: `${position.top}%`,
         height: `${position.height}%`,
@@ -57,15 +57,15 @@ const CourseCard: React.FC<CourseCardProps> = ({
     >
       <CardContent className="p-2 h-full flex flex-col">
         <div className="flex items-center gap-1 mb-0.5">
-          <BookOpen className="h-3 w-3 text-primary flex-shrink-0" />
-          <div className="text-sm font-bold truncate text-primary-700">
+          <BookOpen className="h-3 w-3 text-blue-600 flex-shrink-0" />
+          <div className="text-sm font-bold truncate text-gray-900">
             {course.Class}
           </div>
         </div>
         
         <div className="flex items-center gap-1 mb-0.5">
           <Clock className="h-3 w-3 text-gray-500 flex-shrink-0" />
-          <div className="text-xs opacity-80 truncate">
+          <div className="text-xs text-gray-600 truncate">
             {startTime && endTime ? `${startTime} - ${endTime}` : 'Time TBA'}
           </div>
         </div>
@@ -73,7 +73,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
         {course.Room && (
           <div className="flex items-center gap-1 mb-0.5">
             <MapPin className="h-3 w-3 text-gray-500 flex-shrink-0" />
-            <div className="text-xs opacity-80 truncate">
+            <div className="text-xs text-gray-600 truncate">
               {course.Room}
             </div>
           </div>
@@ -82,7 +82,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
         {course.Instructor && (
           <div className="flex items-center gap-1 mb-0.5">
             <User className="h-3 w-3 text-gray-500 flex-shrink-0" />
-            <div className="text-xs opacity-80 truncate">
+            <div className="text-xs text-gray-600 truncate">
               {course.Instructor}
             </div>
           </div>
@@ -92,17 +92,17 @@ const CourseCard: React.FC<CourseCardProps> = ({
           <Button 
             variant="ghost" 
             size="icon" 
-            className="h-6 w-6 bg-white bg-opacity-70 hover:bg-white hover:bg-opacity-90" 
+            className="h-6 w-6 bg-white hover:bg-gray-50" 
             onClick={onShowDetails}
             title="View details"
           >
-            <InfoIcon className="h-3 w-3" />
+            <InfoIcon className="h-3 w-3 text-gray-600" />
           </Button>
           
           <Button 
             variant="ghost" 
             size="icon" 
-            className={`h-6 w-6 bg-white bg-opacity-70 hover:bg-white hover:bg-opacity-90 ${hasNotes ? 'text-blue-500' : ''}`} 
+            className={`h-6 w-6 bg-white hover:bg-gray-50 ${hasNotes ? 'text-blue-600' : 'text-gray-600'}`} 
             onClick={onOpenNotes}
             title="Edit notes"
           >
@@ -112,7 +112,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
           <Button 
             variant="ghost" 
             size="icon" 
-            className="h-6 w-6 bg-white bg-opacity-70 hover:bg-white hover:bg-opacity-90 text-red-500" 
+            className="h-6 w-6 bg-white hover:bg-gray-50 text-red-600" 
             onClick={onRemove}
             title="Remove course"
           >
