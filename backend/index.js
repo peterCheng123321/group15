@@ -1,6 +1,6 @@
 /**
  * Backend Index
- * Main entry point for the backend services
+ * Main entry point for the backend services testing
  */
 
 import academicScraperApi from './src/api/academic_scraper_api.js';
